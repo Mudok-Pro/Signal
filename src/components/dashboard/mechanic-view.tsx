@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -39,8 +40,8 @@ export function MechanicView() {
   };
 
   const jobRequestsQuery = useMemoFirebase(() => 
-    firestore ? query(collection(firestore, "jobs"), where("status", "in", ["Pending", "Accepted"])) : null
-  , [firestore]);
+    firestore && user ? query(collection(firestore, "jobs"), where("status", "in", ["Pending", "Accepted"])) : null
+  , [firestore, user]);
 
   const { data: jobRequests, isLoading: isLoadingJobs } = useCollection<JobRequest>(jobRequestsQuery);
 
@@ -60,7 +61,7 @@ export function MechanicView() {
                 checked={isAvailable}
                 onCheckedChange={handleAvailabilityChange}
                 aria-label={language === 'ar' ? 'تبديل حالة التوفر' : 'Toggle availability status'}
-                disabled={!mechanicData}
+                disabled={!mechanicData || !user}
             />
         </div>
       </div>
@@ -69,7 +70,7 @@ export function MechanicView() {
         <h2 className="text-xl font-semibold mb-4">
           {language === 'ar' ? 'طلبات الخدمة المفتوحة' : 'Open Service Requests'}
         </h2>
-        {isLoadingJobs && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full mb-4" />)}
+        {isLoadingJobs && user && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full mb-4" />)}
         {jobRequests && jobRequests.length > 0 ? (
           <div className="space-y-4">
             {jobRequests.map((request) => (
@@ -77,8 +78,13 @@ export function MechanicView() {
             ))}
           </div>
         ) : (
-          !isLoadingJobs && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card">
-            <p className="text-muted-foreground">{language === 'ar' ? 'لا توجد طلبات خدمة مفتوحة حاليًا.' : 'No open service requests at the moment.'}</p>
+          (!isLoadingJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card">
+            <p className="text-muted-foreground">
+              {!user 
+                ? (language === 'ar' ? 'الرجاء تسجيل الدخول لعرض الطلبات.' : 'Please log in to view requests.')
+                : (language === 'ar' ? 'لا توجد طلبات خدمة مفتوحة حاليًا.' : 'No open service requests at the moment.')
+              }
+            </p>
           </div>
         )}
       </div>
