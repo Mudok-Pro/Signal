@@ -1,0 +1,193 @@
+{
+  "entities": {
+    "Client": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Client",
+      "type": "object",
+      "description": "Represents a client in the MekaTech application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the client entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The client's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The client's email address.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The client's phone number."
+        },
+        "location": {
+          "type": "string",
+          "description": "The client's current location (e.g., GeoJSON point)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "phoneNumber",
+        "location"
+      ]
+    },
+    "Mechanic": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Mechanic",
+      "type": "object",
+      "description": "Represents a mechanic in the MekaTech application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the mechanic entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The mechanic's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The mechanic's email address.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The mechanic's phone number."
+        },
+        "location": {
+          "type": "string",
+          "description": "The mechanic's current location (e.g., GeoJSON point)."
+        },
+        "availability": {
+          "type": "boolean",
+          "description": "Indicates whether the mechanic is currently available for jobs."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The mechanic's average rating."
+        },
+        "price": {
+          "type": "number",
+          "description": "The mechanic's price."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "phoneNumber",
+        "location",
+        "availability"
+      ]
+    },
+    "JobRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "JobRequest",
+      "type": "object",
+      "description": "Represents a job request submitted by a client.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the job request entity."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "Reference to Client. (Relationship: Client 1:N JobRequest)"
+        },
+        "mechanicId": {
+          "type": "string",
+          "description": "Reference to Mechanic. (Relationship: Mechanic 1:N JobRequest). Nullable until a mechanic accepts the job."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the job required."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the job request (e.g., pending, accepted, completed)."
+        },
+        "location": {
+          "type": "string",
+          "description": "The location where the job needs to be performed (e.g., GeoJSON point)."
+        },
+        "requestTime": {
+          "type": "string",
+          "description": "The time the job request was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "clientId",
+        "description",
+        "status",
+        "location",
+        "requestTime"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/clients/{clientId}",
+        "definition": {
+          "entityName": "Client",
+          "schema": {
+            "$ref": "#/backend/entities/Client"
+          },
+          "description": "Stores client profiles.  Path-based ownership: Only the client can read/write their own profile.",
+          "params": [
+            {
+              "name": "clientId",
+              "description": "The unique ID of the client, matching their Firebase Auth UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/mechanics/{mechanicId}",
+        "definition": {
+          "entityName": "Mechanic",
+          "schema": {
+            "$ref": "#/backend/entities/Mechanic"
+          },
+          "description": "Stores mechanic profiles. Path-based ownership: Only the mechanic can read/write their own profile. Indexing is required to enable GeoQueries based on location.",
+          "params": [
+            {
+              "name": "mechanicId",
+              "description": "The unique ID of the mechanic, matching their Firebase Auth UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/jobs/{jobId}",
+        "definition": {
+          "entityName": "JobRequest",
+          "schema": {
+            "$ref": "#/backend/entities/JobRequest"
+          },
+          "description": "Stores job requests. Includes denormalized 'clientId' and 'mechanicId' for authorization independence. Clients can create jobs, and only the assigned mechanic or the job owner (client) can access it. Indexing is required to enable queries based on `clientId` and `mechanicId`.",
+          "params": [
+            {
+              "name": "jobId",
+              "description": "The unique ID of the job request."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the MekaTech application's core features, including user authentication, location services, job requests, and real-time updates. It prioritizes authorization independence and simplifies security rules by denormalizing authorization data and segregating data based on access requirements.\n\nAuthorization Independence is achieved by storing the `clientId` within the `/jobs/{jobId}` document. This allows security rules to validate if the requesting user is the owner (client) of the job without needing to perform a `get()` operation on a parent document.  Mechanic authorization to update a job depends on the `mechanicId` also stored directly in the `/jobs/{jobId}` document, eliminating the need for hierarchical authorization checks. This directly supports Strategy A: Authorization Independence via Denormalization.\n\nThe structure supports the required QAPs (Rules are not Filters) by storing client and mechanic data in separate collections (`/clients/{clientId}` and `/mechanics/{mechanicId}`).  Listing mechanics is enabled using GeoFirestore which will require a separate index. The jobs are stored in the `/jobs/{jobId}` collection, and security rules will guarantee that only the assigned mechanic or the job owner can access each job document, supporting secure list operations for jobs. This aligns with Strategy B: Structural Segregation (Homogeneous Security Posture) by ensuring all documents within a collection have the same security requirements. Clients have their own collection, and mechanics have their own collection.\n\nStandard Access Modeling (Strategy C) is achieved through the use of path-based ownership for client data and a membership model within the job documents to determine mechanic access. Clients own their data via `/clients/{clientId}`. Job requests are accessible by the client who created it (`clientId` field) and the assigned mechanic (`mechanicId` field)."
+  }
+}

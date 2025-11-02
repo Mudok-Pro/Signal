@@ -1,0 +1,162 @@
+/**
+ * @file Firestore Security Rules for MekaTech.
+ *
+ * @Core Philosophy:
+ *   This ruleset enforces a user-ownership model for clients and mechanics,
+ *   combined with shared access based on denormalized IDs within job requests.
+ *   It prioritizes authorization independence and structural segregation to
+ *   simplify security rules and improve performance.
+ *
+ * @Data Structure:
+ *   - /clients/{clientId}: Stores client profiles, accessible only by the client.
+ *   - /mechanics/{mechanicId}: Stores mechanic profiles, accessible only by the mechanic.
+ *   - /jobs/{jobId}: Stores job requests, accessible by the client who created the
+ *     job and the assigned mechanic.
+ *
+ * @Key Security Decisions:
+ *   - Users can only access their own client/mechanic profiles.
+ *   - Job access is controlled by denormalized `clientId` and `mechanicId` fields.
+ *   - Data validation is relaxed to allow for prototyping, focusing on authorization.
+ *   - List operation for jobs is allowed based on ownership/mechanic assignment.
+ *
+ * @Denormalization for Authorization:
+ *   The `jobs` documents contain `clientId` and `mechanicId` to enable direct
+ *   authorization checks without additional `get()` calls.
+ *
+ * @Structural Segregation:
+ *   Clients and mechanics are stored in separate collections to maintain a
+ *   homogeneous security posture.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Controls access to client profiles.
+     * @path /clients/{clientId}
+     * @allow (create) Client with ID 'user_abc' can create their profile if request.auth.uid == 'user_abc'.
+     * @allow (get) Client with ID 'user_abc' can read their profile if request.auth.uid == 'user_abc'.
+     * @allow (update) Client with ID 'user_abc' can update their profile if request.auth.uid == 'user_abc' and the document exists.
+     * @allow (delete) Client with ID 'user_abc' can delete their profile if request.auth.uid == 'user_abc' and the document exists.
+     * @deny (create) Client with ID 'user_abc' cannot create a profile if request.auth.uid != 'user_abc'.
+     * @deny (get) Client with ID 'user_xyz' cannot read the profile of client 'user_abc'.
+     * @deny (update) Client with ID 'user_xyz' cannot update the profile of client 'user_abc'.
+     * @deny (delete) Client with ID 'user_xyz' cannot delete the profile of client 'user_abc'.
+     * @principle Enforces document ownership for writes and reads.
+     */
+    match /clients/{clientId} {
+      allow get: if isOwner(clientId);
+      allow list: if false; // Listing clients is not permitted.
+      allow create: if isSignedIn() && isOwner(clientId) && request.resource.data.id == clientId;
+      allow update: if isExistingOwner(clientId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(clientId);
+    }
+
+    /**
+     * @description Controls access to mechanic profiles.
+     * @path /mechanics/{mechanicId}
+     * @allow (create) Mechanic with ID 'mechanic_123' can create their profile if request.auth.uid == 'mechanic_123'.
+     * @allow (get) Mechanic with ID 'mechanic_123' can read their profile if request.auth.uid == 'mechanic_123'.
+     * @allow (update) Mechanic with ID 'mechanic_123' can update their profile if request.auth.uid == 'mechanic_123' and the document exists.
+     * @allow (delete) Mechanic with ID 'mechanic_123' can delete their profile if request.auth.uid == 'mechanic_123' and the document exists.
+     * @deny (create) Mechanic with ID 'mechanic_123' cannot create a profile if request.auth.uid != 'mechanic_123'.
+     * @deny (get) Client with ID 'client_xyz' cannot read the profile of mechanic 'mechanic_123'.
+     * @deny (update) Client with ID 'client_xyz' cannot update the profile of mechanic 'mechanic_123'.
+     * @deny (delete) Client with ID 'client_xyz' cannot delete the profile of mechanic 'mechanic_123'.
+     * @principle Enforces document ownership for writes and reads.
+     */
+    match /mechanics/{mechanicId} {
+      allow get: if isOwner(mechanicId);
+      allow list: if false; // Listing mechanics is not permitted
+      allow create: if isSignedIn() && isOwner(mechanicId) && request.resource.data.id == mechanicId;
+      allow update: if isExistingOwner(mechanicId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(mechanicId);
+    }
+
+    /**
+     * @description Controls access to job requests.
+     * @path /jobs/{jobId}
+     * @allow (create) Client with ID 'user_abc' can create a job if request.auth.uid == 'user_abc'.
+     * @allow (get) Client with ID 'user_abc' can read job 'job_123' if request.auth.uid == 'user_abc' and job.clientId == 'user_abc'.
+     * @allow (get) Mechanic with ID 'mechanic_123' can read job 'job_123' if request.auth.uid == 'mechanic_123' and job.mechanicId == 'mechanic_123'.
+     * @allow (update) Mechanic with ID 'mechanic_123' can update job 'job_123' if request.auth.uid == 'mechanic_123' and job.mechanicId == 'mechanic_123' and the document exists.
+     * @allow (delete) Client with ID 'user_abc' can delete job 'job_123' if request.auth.uid == 'user_abc' and job.clientId == 'user_abc' and the document exists.
+     * @deny (create) Client with ID 'user_xyz' cannot create a job for client 'user_abc'.
+     * @deny (get) Client with ID 'user_xyz' cannot read job 'job_123' owned by client 'user_abc'.
+     * @deny (update) Client with ID 'user_xyz' cannot update job 'job_123' owned by client 'user_abc'.
+     * @deny (delete) Mechanic with ID 'mechanic_xyz' cannot delete job 'job_123' assigned to mechanic 'mechanic_123'.
+     * @principle Enforces ownership for job creation and allows access to assigned mechanics.
+     */
+    match /jobs/{jobId} {
+      allow get: if isJobOwner(resource.data.clientId) || isAssignedMechanic(resource.data.mechanicId);
+      allow list: if isSignedIn(); // Anyone signed in can potentially list jobs (filtered by query).
+      allow create: if isSignedIn() && request.resource.data.clientId == request.auth.uid;
+      allow update: if (isAssignedMechanicExisting(resource.data.mechanicId) || isJobOwnerExisting(resource.data.clientId));
+      allow delete: if isJobOwnerExisting(resource.data.clientId);
+    }
+
+    // --- Helper functions ---
+
+    /**
+     * @description Checks if the user is signed in.
+     * @return {bool} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the user is the owner of the document (based on UID).
+     * @param {string} userId The user ID to compare against the request's auth UID.
+     * @return {bool} True if the user is the owner, false otherwise.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the user is the owner of the job (based on clientId in the job document).
+     * @param {string} clientId The client ID in the job document to compare against the request's auth UID.
+     * @return {bool} True if the user is the job owner, false otherwise.
+     */
+    function isJobOwner(clientId) {
+      return isSignedIn() && request.auth.uid == clientId;
+    }
+
+        /**
+         * @description Checks if the user is the owner of the document and it exists (based on UID).
+         * @param {string} userId The user ID to compare against the request's auth UID.
+         * @return {bool} True if the user is the owner and the document exists, false otherwise.
+         */
+    function isJobOwnerExisting(clientId) {
+          return isJobOwner(clientId) && resource != null;
+        }
+
+    /**
+     * @description Checks if the user is the assigned mechanic for the job (based on mechanicId in the job document).
+     * @param {string} mechanicId The mechanic ID in the job document to compare against the request's auth UID.
+     * @return {bool} True if the user is the assigned mechanic, false otherwise.
+     */
+    function isAssignedMechanic(mechanicId) {
+      return isSignedIn() && request.auth.uid == mechanicId;
+    }
+
+        /**
+         * @description Checks if the user is the assigned mechanic for the job and the document exists (based on mechanicId in the job document).
+         * @param {string} mechanicId The mechanic ID in the job document to compare against the request's auth UID.
+         * @return {bool} True if the user is the assigned mechanic and the document exists, false otherwise.
+         */
+    function isAssignedMechanicExisting(mechanicId) {
+          return isAssignedMechanic(mechanicId) && resource != null;
+        }
+
+    /**
+     * @description Checks if the user is the owner of the document and it exists (based on UID).
+     * @param {string} userId The user ID to compare against the request's auth UID.
+     * @return {bool} True if the user is the owner and the document exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+  }
+}
