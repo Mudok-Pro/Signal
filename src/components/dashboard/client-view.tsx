@@ -3,14 +3,30 @@
 import { useApp } from "@/components/app-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPlaceholder } from "@/components/map-placeholder";
-import { mechanics, myRequests } from "@/lib/data";
 import { MechanicCard } from "@/components/mechanic-card";
 import { JobRequestCard } from "@/components/job-request-card";
 import { RequestServiceDialog } from "../request-service-dialog";
 import { List } from "lucide-react";
+import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
+import type { Mechanic, JobRequest } from "@/lib/types";
+import { Skeleton } from "../ui/skeleton";
 
 export function ClientView() {
   const { language } = useApp();
+  const firestore = useFirestore();
+  const { user } = useUser();
+
+  const mechanicsQuery = useMemoFirebase(() => 
+    firestore ? query(collection(firestore, "mechanics"), where("available", "==", true)) : null
+  , [firestore]);
+
+  const myRequestsQuery = useMemoFirebase(() => 
+    firestore && user ? query(collection(firestore, "jobs"), where("clientId", "==", user.uid)) : null
+  , [firestore, user]);
+
+  const { data: mechanics, isLoading: isLoadingMechanics } = useCollection<Mechanic>(mechanicsQuery);
+  const { data: myRequests, isLoading: isLoadingRequests } = useCollection<JobRequest>(myRequestsQuery);
 
   return (
     <Tabs defaultValue="find" className="w-full">
@@ -38,7 +54,8 @@ export function ClientView() {
           <div>
             <h2 className="text-xl font-semibold mb-4">{language === 'ar' ? 'الميكانيكيون المتاحون' : 'Available Mechanics'}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {mechanics.filter(m => m.available).map((mechanic) => (
+              {isLoadingMechanics && Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}
+              {mechanics?.map((mechanic) => (
                 <MechanicCard key={mechanic.id} mechanic={mechanic} />
               ))}
             </div>
@@ -48,9 +65,15 @@ export function ClientView() {
       <TabsContent value="requests">
         <div className="space-y-4">
             <h2 className="text-xl font-semibold mb-4">{language === 'ar' ? 'طلبات الصيانة الخاصة بي' : 'My Service Requests'}</h2>
-            {myRequests.map(request => (
+            {isLoadingRequests && Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+            {myRequests?.map(request => (
                 <JobRequestCard key={request.id} request={request} userRole="client" />
             ))}
+             {myRequests?.length === 0 && !isLoadingRequests && (
+              <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card">
+                  <p className="text-muted-foreground">{language === 'ar' ? 'لم تقم بإنشاء أي طلبات بعد.' : 'You have not created any requests yet.'}</p>
+              </div>
+            )}
         </div>
       </TabsContent>
     </Tabs>

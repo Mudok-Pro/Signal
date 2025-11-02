@@ -13,28 +13,48 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useApp } from "./app-provider"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
-import { CreditCard, LogOut, Settings, User } from "lucide-react";
+import { CreditCard, LogIn, LogOut, Settings, User } from "lucide-react";
+import { useUser, useAuth } from "@/firebase";
+import Link from "next/link";
+import { signOut } from "firebase/auth";
 
 export function UserNav() {
   const { language } = useApp();
+  const { user } = useUser();
+  const auth = useAuth();
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+
+  if (!user) {
+    return (
+      <Button asChild variant="outline">
+        <Link href="/login">
+          <LogIn className="me-2" />
+          {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
+        </Link>
+      </Button>
+    )
+  }
+
+  const handleLogout = () => {
+    signOut(auth);
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9 border">
-            {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User avatar" data-ai-hint={userAvatar.imageHint}/>}
-            <AvatarFallback>MA</AvatarFallback>
+            {userAvatar && <AvatarImage src={user.photoURL || userAvatar.imageUrl} alt="User avatar" data-ai-hint={userAvatar.imageHint}/>}
+            <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{language === 'ar' ? 'محمد عبدالله' : 'Mohammed Abdullah'}</p>
+            <p className="text-sm font-medium leading-none">{user.displayName || (language === 'ar' ? 'مستخدم جديد' : 'New User')}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              m.abdullah@email.com
+              {user.email}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -54,7 +74,7 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="me-2 h-4 w-4" />
           <span>{language === 'ar' ? 'تسجيل الخروج' : 'Log out'}</span>
         </DropdownMenuItem>
