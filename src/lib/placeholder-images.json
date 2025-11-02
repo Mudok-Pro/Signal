@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "mech1",
+      "description": "Mechanic 1 Avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1656156775155-7404564589e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtZWNoYW5pYyUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MjA2MTkyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mechanic portrait"
+    },
+    {
+      "id": "mech2",
+      "description": "Mechanic 2 Avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1656156775209-adb612677dbe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtZWNoYW5pYyUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MjA2MTkyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mechanic portrait"
+    },
+    {
+      "id": "mech3",
+      "description": "Mechanic 3 Avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1656156775165-3491961825a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtZWNoYW5pYyUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MjA2MTkyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mechanic portrait"
+    },
+    {
+      "id": "mech4",
+      "description": "Mechanic 4 Avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1603240663507-8b011c6f75a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtZWNoYW5pYyUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MjA2MTkyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mechanic portrait"
+    },
+    {
+      "id": "user-avatar",
+      "description": "Generic User Avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjIwNzc3MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "map-placeholder",
+      "description": "Placeholder image for a map",
+      "imageUrl": "https://images.unsplash.com/photo-1717343824623-06293a62a70d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjaXR5JTIwbWFwfGVufDB8fHx8MTc2MjAzMTIwN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "city map"
+    }
+  ]
 }
