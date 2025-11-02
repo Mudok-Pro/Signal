@@ -11,6 +11,9 @@ import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebas
 import { collection, query, where } from "firebase/firestore";
 import type { Mechanic, JobRequest } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
+import { Button } from "../ui/button";
+import Link from "next/link";
+import { LogIn } from "lucide-react";
 
 export function ClientView() {
   const { language } = useApp();
@@ -18,8 +21,8 @@ export function ClientView() {
   const { user } = useUser();
 
   const mechanicsQuery = useMemoFirebase(() => 
-    firestore ? query(collection(firestore, "mechanics"), where("available", "==", true)) : null
-  , [firestore]);
+    firestore && user ? query(collection(firestore, "mechanics"), where("available", "==", true)) : null
+  , [firestore, user]);
 
   const myRequestsQuery = useMemoFirebase(() => 
     firestore && user ? query(collection(firestore, "jobs"), where("clientId", "==", user.uid)) : null
@@ -27,6 +30,20 @@ export function ClientView() {
 
   const { data: mechanics, isLoading: isLoadingMechanics } = useCollection<Mechanic>(mechanicsQuery);
   const { data: myRequests, isLoading: isLoadingRequests } = useCollection<JobRequest>(myRequestsQuery);
+
+  if (!user) {
+    return (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card flex flex-col items-center gap-4">
+            <p className="text-muted-foreground">{language === 'ar' ? 'الرجاء تسجيل الدخول لعرض هذه الصفحة.' : 'Please log in to view this page.'}</p>
+            <Button asChild>
+                <Link href="/login">
+                  <LogIn className="me-2" />
+                  {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
+                </Link>
+            </Button>
+        </div>
+    )
+  }
 
   return (
     <Tabs defaultValue="find" className="w-full">
