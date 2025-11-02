@@ -43,7 +43,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
            <div className="flex justify-center items-center gap-2 font-bold text-lg text-primary mb-4">
-              <Image src="https://i.imgur.com/zZbq9tq.png" alt="Mechasos Logo" width={48} height={48} className="h-12 w-12" />
+              <Image src="https://i.imgur.com/I3yT0h7.png" alt="Mechasos Logo" width={48} height={48} className="h-12 w-12" />
               <div className="flex flex-col">
                 <span className="font-headline text-2xl leading-none" lang="en">Mechasos</span>
               </div>
