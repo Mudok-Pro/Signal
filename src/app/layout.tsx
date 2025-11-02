@@ -5,7 +5,7 @@ import { AppProvider } from '@/components/app-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'ميكا-تك | Mechasos',
+  title: 'Mechasos',
   description: 'Find and request the closest mechanics.',
 };
 
@@ -24,11 +24,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-arabic antialiased">
         <FirebaseClientProvider>
           <AppProvider>
             {children}

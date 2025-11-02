@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    --background: 220 33% 98%;
-    --foreground: 220 13% 20%;
+    --background: 240 10% 97%;
+    --foreground: 220 13% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 20%;
+    --card-foreground: 220 13% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 20%;
+    --popover-foreground: 220 13% 13%;
     --primary: 205 100% 38%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 14% 96%;
@@ -23,7 +23,7 @@
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 205 100% 38%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --status-pending: 45 93% 58%;
     --status-accepted: 217 91% 60%;

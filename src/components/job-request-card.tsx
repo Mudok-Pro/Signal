@@ -63,7 +63,7 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
   const statusInfo = statusMap[request.status];
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-300">
+    <Card className="transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
             <div>
@@ -112,7 +112,7 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
             <X className="me-2 h-4 w-4" />
             {language === 'ar' ? 'رفض' : 'Decline'}
           </Button>
-          <Button variant="default" onClick={handleAccept}>
+          <Button variant="default" className="bg-accent hover:bg-accent/90 text-accent-foreground" onClick={handleAccept}>
             <Check className="me-2 h-4 w-4" />
             {language === 'ar' ? 'قبول' : 'Accept'}
           </Button>

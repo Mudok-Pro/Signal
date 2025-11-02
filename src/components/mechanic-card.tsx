@@ -16,7 +16,7 @@ export function MechanicCard({ mechanic }: MechanicCardProps) {
   const { language } = useApp();
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 duration-300">
+    <Card className="flex flex-col overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
       <CardHeader className="flex-row gap-4 items-center p-4">
         <div className="relative shrink-0">
           <Image
@@ -49,8 +49,8 @@ export function MechanicCard({ mechanic }: MechanicCardProps) {
       </CardContent>
       <CardFooter className="p-4 pt-0 mt-auto">
         <RequestServiceDialog triggerButton={
-          <Button className="w-full" variant="default">
-            {language === 'ar' ? 'طلب خدمة' : 'Request Service'}
+          <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+            {language === 'ar' ? 'اطلب الآن' : 'Request Now'}
           </Button>
         }/>
       </CardFooter>

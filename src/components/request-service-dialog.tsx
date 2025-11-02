@@ -10,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,7 +80,7 @@ export function RequestServiceDialog({ triggerButton }: RequestServiceDialogProp
         {triggerButton ? (
           <div onClick={() => setIsOpen(true)}>{triggerButton}</div>
         ) : (
-          <Button onClick={() => setIsOpen(true)}>
+          <Button onClick={() => setIsOpen(true)} className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <PlusCircle className="me-2 h-4 w-4" />
             {language === 'ar' ? 'طلب خدمة جديد' : 'New Service Request'}
           </Button>

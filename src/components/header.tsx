@@ -10,8 +10,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2 font-bold text-lg text-primary">
           <Image src="https://i.imgur.com/zZbq9tq.png" alt="Mechasos Logo" width={32} height={32} className="h-8 w-8" />
           <div className="flex flex-col">
-            <span className="font-headline leading-none" lang="ar">ميكا-تك</span>
-            <span className="font-headline text-xs leading-none opacity-80" lang="en">Mechasos</span>
+            <span className="font-headline text-xl leading-none" lang="en">Mechasos</span>
           </div>
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">
