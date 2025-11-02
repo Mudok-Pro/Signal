@@ -5,7 +5,7 @@ import { AppProvider } from '@/components/app-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'ميكا-تك | MekaTech',
+  title: 'ميكا-تك | Mechasos',
   description: 'Find and request the closest mechanics.',
 };
 

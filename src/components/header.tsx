@@ -1,17 +1,17 @@
 import Link from 'next/link';
-import { Wrench } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import Image from 'next/image';
 
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg text-primary">
-          <Wrench className="h-6 w-6" />
+          <Image src="https://i.imgur.com/zZbq9tq.png" alt="Mechasos Logo" width={32} height={32} className="h-8 w-8" />
           <div className="flex flex-col">
             <span className="font-headline leading-none" lang="ar">ميكا-تك</span>
-            <span className="font-headline text-xs leading-none opacity-80" lang="en">MekaTech</span>
+            <span className="font-headline text-xs leading-none opacity-80" lang="en">Mechasos</span>
           </div>
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">

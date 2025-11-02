@@ -18,8 +18,8 @@ import {
   initiateEmailSignUp,
 } from '@/firebase/non-blocking-login';
 import { useState } from 'react';
-import { Wrench } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const { language } = useApp();
@@ -43,10 +43,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
            <div className="flex justify-center items-center gap-2 font-bold text-lg text-primary mb-4">
-              <Wrench className="h-7 w-7" />
+              <Image src="https://i.imgur.com/zZbq9tq.png" alt="Mechasos Logo" width={48} height={48} className="h-12 w-12" />
               <div className="flex flex-col">
                 <span className="font-headline text-2xl leading-none" lang="ar">ميكا-تك</span>
-                <span className="font-headline text-sm leading-none opacity-80" lang="en">MekaTech</span>
+                <span className="font-headline text-sm leading-none opacity-80" lang="en">Mechasos</span>
               </div>
             </div>
           <CardTitle className="text-2xl">
