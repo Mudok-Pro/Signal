@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/components/app-provider";
 import { ClientView } from './client-view';
 import { MechanicView } from './mechanic-view';
+import { SeedFirestoreButton } from '../seed-firestore-button';
 
 export function MainDashboard() {
   const { language } = useApp();
@@ -20,6 +21,8 @@ export function MainDashboard() {
           </TabsList>
         </Tabs>
       </div>
+
+      {process.env.NODE_ENV === 'development' && <SeedFirestoreButton />}
 
       {role === 'client' ? <ClientView /> : <MechanicView />}
     </div>
