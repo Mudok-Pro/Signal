@@ -1,17 +1,12 @@
 
 'use client';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import Map, { Marker } from 'react-map-gl';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Map, { Marker } from 'react-map-gl/maplibre';
 import { Card } from './ui/card';
-import Image from 'next/image';
 import type { Mechanic } from '@/lib/types';
 import { MapPin } from 'lucide-react';
 
 export function MapComponent({ mechanics }: { mechanics: Mechanic[] }) {
-  const mapImage = PlaceHolderImages.find(
-    (img) => img.id === 'map-placeholder'
-  );
 
   const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 
