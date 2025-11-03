@@ -18,12 +18,23 @@ import { Button } from '../ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { services } from '@/lib/services';
+import { Checkbox } from '../ui/checkbox';
 
 function MechanicRegistration({ user }: { user: any }) {
     const { language } = useApp();
     const [name, setName] = useState('');
+    const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const firestore = useFirestore();
     const { toast } = useToast();
+
+    const handleServiceChange = (serviceId: string) => {
+        setSelectedServices(prev => 
+            prev.includes(serviceId) 
+                ? prev.filter(id => id !== serviceId) 
+                : [...prev, serviceId]
+        );
+    };
 
     const handleRegistration = () => {
         if (!firestore || !user || !name) {
@@ -47,11 +58,11 @@ function MechanicRegistration({ user }: { user: any }) {
             distance: 0,
             avatarUrl: user.photoURL || avatar?.imageUrl || '',
             avatarHint: avatar?.imageHint || '',
-            // Default location to Riyadh, can be updated later with real location
-            location: new GeoPoint(24.7136, 46.6753) 
+            location: new GeoPoint(24.7136, 46.6753),
+            services: selectedServices
         };
 
-        setDocumentNonBlocking(mechanicDocRef, newMechanic, {});
+        setDocumentNonBlocking(mechanicDocRef, newMechanic, { merge: true });
         
         toast({
             title: language === 'ar' ? 'تم التسجيل بنجاح!' : 'Registration Successful!',
@@ -74,6 +85,23 @@ function MechanicRegistration({ user }: { user: any }) {
                      <div className="space-y-2">
                         <Label htmlFor="email">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</Label>
                         <Input id="email" value={user.email || ''} disabled />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>{language === 'ar' ? 'خدماتي' : 'My Services'}</Label>
+                        <div className="grid grid-cols-2 gap-4 pt-2">
+                            {services.map(service => (
+                                <div key={service.id} className="flex items-center space-x-2 space-x-reverse">
+                                    <Checkbox
+                                        id={`service-${service.id}`}
+                                        checked={selectedServices.includes(service.id)}
+                                        onCheckedChange={() => handleServiceChange(service.id)}
+                                    />
+                                    <Label htmlFor={`service-${service.id}`} className="cursor-pointer">
+                                        {language === 'ar' ? service.name : service.name_en}
+                                    </Label>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </CardContent>
                 <CardFooter>

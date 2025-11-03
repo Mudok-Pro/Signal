@@ -12,6 +12,7 @@ export type Mechanic = {
   avatarUrl: string;
   avatarHint: string;
   location: GeoPoint;
+  services?: string[]; // Array of service IDs
 };
 
 export type JobRequest = {

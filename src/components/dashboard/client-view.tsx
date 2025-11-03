@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useApp } from "@/components/app-provider";
@@ -15,7 +16,7 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import { LogIn } from "lucide-react";
 import { TopServices } from "./top-services";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "../ui/input";
 
 export function ClientView() {
@@ -34,6 +35,14 @@ export function ClientView() {
 
   const { data: mechanics, isLoading: isLoadingMechanics } = useCollection<Mechanic>(mechanicsQuery);
   const { data: myRequests, isLoading: isLoadingRequests } = useCollection<JobRequest>(myRequestsQuery);
+
+  const filteredMechanics = useMemo(() => {
+    if (!mechanics) return [];
+    if (!selectedService) return mechanics;
+    return mechanics.filter(mechanic => 
+      mechanic.services && mechanic.services.includes(selectedService)
+    );
+  }, [mechanics, selectedService]);
 
   if (!user) {
     return (
@@ -80,17 +89,27 @@ export function ClientView() {
             />
           </div>
 
-          <MapComponent mechanics={mechanics || []} />
+          <MapComponent mechanics={filteredMechanics || []} />
           
           <TopServices selectedService={selectedService} onSelectService={setSelectedService} />
 
           <div>
-            <h2 className="text-xl font-semibold mb-4">{language === 'ar' ? 'الميكانيكيون المتاحون' : 'Available Mechanics'}</h2>
+            <h2 className="text-xl font-semibold mb-4">{selectedService ? (language === 'ar' ? 'الميكانيكيون المتاحون للخدمة المختارة' : 'Available Mechanics for Selected Service') : (language === 'ar' ? 'الميكانيكيون المتاحون' : 'Available Mechanics')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {isLoadingMechanics && Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}
-              {mechanics?.map((mechanic) => (
+              {filteredMechanics.map((mechanic) => (
                 <MechanicCard key={mechanic.id} mechanic={mechanic} />
               ))}
+               {!isLoadingMechanics && filteredMechanics.length === 0 && (
+                <div className="col-span-full text-center py-12 border-2 border-dashed rounded-lg bg-card">
+                  <p className="text-muted-foreground">
+                    {selectedService 
+                        ? (language === 'ar' ? 'لا يوجد ميكانيكيون متاحون لهذه الخدمة حاليًا.' : 'No available mechanics for this service currently.')
+                        : (language === 'ar' ? 'لا يوجد ميكانيكيون متاحون حاليًا.' : 'No available mechanics currently.')
+                    }
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

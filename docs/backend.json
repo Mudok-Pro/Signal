@@ -74,6 +74,13 @@
         "price": {
           "type": "number",
           "description": "The mechanic's price."
+        },
+        "services": {
+          "type": "array",
+          "description": "A list of services the mechanic provides.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
