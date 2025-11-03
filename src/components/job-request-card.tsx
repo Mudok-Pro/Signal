@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useApp } from "./app-provider";
@@ -7,12 +6,24 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { JobRequest } from "@/lib/types";
-import { Car, Wrench, MapPin, User, Check, X, Clock, UserCheck } from 'lucide-react';
+import { Car, Wrench, MapPin, User, Check, X, Clock, UserCheck, Hammer, CheckCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useState, useEffect } from "react";
 import { useFirestore, useUser, updateDocumentNonBlocking, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 type JobRequestCardProps = {
   request: JobRequest;
@@ -52,21 +63,100 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
     }
   }, [request.createdAt, language]);
 
-  const handleAccept = () => {
+  const updateJobStatus = (status: JobRequest['status']) => {
     if (firestore && user) {
       const jobRef = doc(firestore, 'jobs', request.id);
-      updateDocumentNonBlocking(jobRef, { status: 'Accepted', mechanicId: user.uid, mechanicName: user.displayName || 'ميكانيكي' });
-    }
-  };
-
-  const handleDecline = () => {
-    if (firestore) {
-      const jobRef = doc(firestore, 'jobs', request.id);
-      updateDocumentNonBlocking(jobRef, { status: 'Cancelled' });
+      const updateData: any = { status };
+      if (status === 'Accepted') {
+        updateData.mechanicId = user.uid;
+        updateData.mechanicName = user.displayName || 'ميكانيكي';
+      }
+      updateDocumentNonBlocking(jobRef, updateData);
     }
   };
   
   const statusInfo = statusMap[request.status];
+
+  const renderMechanicActions = () => {
+    if (userRole !== 'mechanic' || !user) return null;
+
+    switch (request.status) {
+      case 'Pending':
+        return (
+          <CardFooter className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => updateJobStatus('Cancelled')}>
+              <X className="me-2 h-4 w-4" />
+              {language === 'ar' ? 'رفض' : 'Decline'}
+            </Button>
+            <Button variant="default" className="bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => updateJobStatus('Accepted')}>
+              <Check className="me-2 h-4 w-4" />
+              {language === 'ar' ? 'قبول' : 'Accept'}
+            </Button>
+          </CardFooter>
+        );
+      case 'Accepted':
+        if (request.mechanicId === user.uid) {
+            return (
+                <CardFooter className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => updateJobStatus('In Progress')}>
+                        <Hammer className="me-2 h-4 w-4" />
+                        {language === 'ar' ? 'بدء العمل' : 'Start Job'}
+                    </Button>
+                </CardFooter>
+            );
+        }
+        return null;
+      case 'In Progress':
+         if (request.mechanicId === user.uid) {
+            return (
+                 <CardFooter className="flex justify-end gap-2">
+                    <Button variant="default" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => updateJobStatus('Completed')}>
+                        <CheckCircle className="me-2 h-4 w-4" />
+                        {language === 'ar' ? 'إكمال المهمة' : 'Complete Job'}
+                    </Button>
+                </CardFooter>
+            )
+         }
+         return null;
+      default:
+        return null;
+    }
+  }
+
+  const renderClientActions = () => {
+    if (userRole !== 'client' || !user || request.clientId !== user.uid) return null;
+
+    if (request.status === 'Pending' || request.status === 'Accepted') {
+        return (
+            <CardFooter className="flex justify-end">
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive">
+                            <X className="me-2 h-4 w-4" />
+                            {language === 'ar' ? 'إلغاء الطلب' : 'Cancel Request'}
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>{language === 'ar' ? 'هل أنت متأكد؟' : 'Are you sure?'}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                           {language === 'ar' ? 'لا يمكن التراجع عن هذا الإجراء. سيؤدي هذا إلى إلغاء طلب الخدمة الخاص بك بشكل دائم.' : 'This action cannot be undone. This will permanently cancel your service request.'}
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>{language === 'ar' ? 'تراجع' : 'Cancel'}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => updateJobStatus('Cancelled')}>
+                           {language === 'ar' ? 'نعم، قم بالإلغاء' : 'Yes, cancel'}
+                        </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </CardFooter>
+        )
+    }
+
+    return null;
+  }
 
   return (
     <Card className="transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
@@ -126,18 +216,8 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
         )}
 
       </CardContent>
-      {userRole === 'mechanic' && request.status === 'Pending' && (
-        <CardFooter className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={handleDecline}>
-            <X className="me-2 h-4 w-4" />
-            {language === 'ar' ? 'رفض' : 'Decline'}
-          </Button>
-          <Button variant="default" className="bg-accent hover:bg-accent/90 text-accent-foreground" onClick={handleAccept}>
-            <Check className="me-2 h-4 w-4" />
-            {language === 'ar' ? 'قبول' : 'Accept'}
-          </Button>
-        </CardFooter>
-      )}
+      {renderMechanicActions()}
+      {renderClientActions()}
     </Card>
   );
 }
