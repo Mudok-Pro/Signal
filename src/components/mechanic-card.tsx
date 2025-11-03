@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, Mail } from "lucide-react";
 import type { Mechanic } from "@/lib/types";
 import { useApp } from "./app-provider";
 import { RequestServiceDialog } from "./request-service-dialog";
@@ -40,11 +40,15 @@ export function MechanicCard({ mechanic }: MechanicCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-4 pt-0">
+      <CardContent className="p-4 pt-0 space-y-2">
          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="w-4 h-4" />
             {/* Distance calculation would be more complex in a real app */}
             <span>{language === 'ar' ? `يبعد ${mechanic.distance.toFixed(1)} كم` : `${mechanic.distance.toFixed(1)} km away`}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Mail className="w-4 h-4" />
+            <span>{mechanic.email}</span>
           </div>
       </CardContent>
       <CardFooter className="p-4 pt-0 mt-auto">
@@ -57,3 +61,5 @@ export function MechanicCard({ mechanic }: MechanicCardProps) {
     </Card>
   );
 }
+
+    

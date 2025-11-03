@@ -4,6 +4,7 @@ import type { Timestamp, GeoPoint } from 'firebase/firestore';
 export type Mechanic = {
   id: string;
   name: string;
+  email: string;
   rating: number;
   reviews: number;
   distance: number; // This will likely be calculated on the client-side
@@ -32,3 +33,5 @@ export type UserProfile = {
   name?: string;
   role: 'client' | 'mechanic';
 };
+
+    
