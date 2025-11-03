@@ -42,18 +42,20 @@ export function MechanicView() {
   const jobRequestsQuery = useMemoFirebase(() => 
     firestore && user ? query(
       collection(firestore, "jobs"), 
-      or(
-        where("status", "==", "Pending"),
-        where("mechanicId", "==", user.uid)
-      )
+      where("status", "==", "Pending")
     ) : null
   , [firestore, user]);
 
-  const { data: jobRequests, isLoading: isLoadingJobs } = useCollection<JobRequest>(jobRequestsQuery);
+  const myJobsQuery = useMemoFirebase(() =>
+    firestore && user ? query(
+        collection(firestore, 'jobs'),
+        where('mechanicId', '==', user.uid)
+    ) : null,
+  [firestore, user]);
 
-  const filteredRequests = jobRequests?.filter(job => 
-    job.status === 'Pending' || (job.mechanicId === user?.uid && ['Accepted', 'In Progress'].includes(job.status))
-  );
+
+  const { data: availableRequests, isLoading: isLoadingJobs } = useCollection<JobRequest>(jobRequestsQuery);
+  const { data: myJobs, isLoading: isLoadingMyJobs } = useCollection<JobRequest>(myJobsQuery);
 
   return (
     <div className="space-y-6">
@@ -78,12 +80,35 @@ export function MechanicView() {
       
       <div>
         <h2 className="text-xl font-semibold mb-4">
+          {language === 'ar' ? 'طلباتي الحالية' : 'My Current Jobs'}
+        </h2>
+        {isLoadingMyJobs && user && Array.from({ length: 1 }).map((_, i) => <Skeleton key={i} className="h-48 w-full mb-4" />)}
+        {myJobs && myJobs.length > 0 ? (
+          <div className="space-y-4">
+            {myJobs.map((request) => (
+              <JobRequestCard key={request.id} request={request} userRole="mechanic" />
+            ))}
+          </div>
+        ) : (
+          (!isLoadingMyJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card">
+            <p className="text-muted-foreground">
+              {!user 
+                ? (language === 'ar' ? 'الرجاء تسجيل الدخول لعرض الطلبات.' : 'Please log in to view requests.')
+                : (language === 'ar' ? 'ليس لديك أي وظائف حالية.' : 'You have no current jobs.')
+              }
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="pt-6 border-t">
+        <h2 className="text-xl font-semibold mb-4">
           {language === 'ar' ? 'طلبات الخدمة المتاحة' : 'Available Service Requests'}
         </h2>
         {isLoadingJobs && user && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full mb-4" />)}
-        {filteredRequests && filteredRequests.length > 0 ? (
+        {availableRequests && availableRequests.length > 0 ? (
           <div className="space-y-4">
-            {filteredRequests.map((request) => (
+            {availableRequests.map((request) => (
               <JobRequestCard key={request.id} request={request} userRole="mechanic" />
             ))}
           </div>

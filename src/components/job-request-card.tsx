@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useApp } from "./app-provider";
@@ -54,7 +55,7 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
   const handleAccept = () => {
     if (firestore && user) {
       const jobRef = doc(firestore, 'jobs', request.id);
-      updateDocumentNonBlocking(jobRef, { status: 'Accepted', mechanicId: user.uid, mechanicName: user.displayName });
+      updateDocumentNonBlocking(jobRef, { status: 'Accepted', mechanicId: user.uid, mechanicName: user.displayName || 'ميكانيكي' });
     }
   };
 
@@ -72,9 +73,9 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
             <div>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="text-lg flex items-center gap-2 font-bold">
                     <Car className="w-5 h-5 text-primary" />
-                    {request.carModel}
+                    {request.carModel || (language === 'ar' ? 'طلب خدمة' : 'Service Request')}
                 </CardTitle>
                 <CardDescription className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                     <Clock className="w-4 h-4" /> {timeAgo}

@@ -89,7 +89,7 @@ service cloud.firestore {
      */
     match /jobs/{jobId} {
       allow get: if isJobOwner(resource.data.clientId) || isAssignedMechanic(resource.data.mechanicId);
-      allow list: if isSignedIn(); // Anyone signed in can potentially list jobs (filtered by query).
+      allow list: if isSignedIn() && (request.query.limit <= 10 || request.auth.uid == request.query.filters[0][2] || request.query.filters[0][2] == 'Pending');
       allow create: if isSignedIn() && request.resource.data.clientId == request.auth.uid;
       allow update: if (isAssignedMechanicExisting(resource.data.mechanicId) || isJobOwnerExisting(resource.data.clientId));
       allow delete: if isJobOwnerExisting(resource.data.clientId);
