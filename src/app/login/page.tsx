@@ -44,7 +44,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
            <div className="flex justify-center items-center gap-3 font-bold text-lg text-primary mb-4">
               <div className="relative w-12 h-12">
-                <Image src="https://i.imgur.com/I3yT0h7.png" alt="Mechasos Logo" fill className="p-1 bg-white rounded-lg object-contain" />
+                <Image src="https://i.imgur.com/3Z4QjB8.png" alt="Mechasos Logo" fill className="p-1 bg-white rounded-lg object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="font-headline text-2xl leading-none" lang="en">Mechasos</span>
@@ -113,8 +113,8 @@ export default function LoginPage() {
                 ? 'لديك حساب بالفعل؟ تسجيل الدخول'
                 : 'Already have an account? Sign In'
               : language === 'ar'
-              ? 'ليس لديك حساب؟ إنشاء حساب'
-              : "Don't have an account? Sign Up"}
+                ? 'ليس لديك حساب؟ إنشاء حساب'
+                : "Don't have an account? Sign Up"}
           </Button>
         </CardFooter>
       </Card>
