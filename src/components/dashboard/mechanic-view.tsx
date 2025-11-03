@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { JobRequestCard } from "@/components/job-request-card";
 import { Bell, BellOff } from "lucide-react";
 import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, where, doc } from "firebase/firestore";
+import { collection, query, where, doc, or } from "firebase/firestore";
 import type { JobRequest, Mechanic } from "@/lib/types";
 import { updateDocumentNonBlocking } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
@@ -40,10 +40,20 @@ export function MechanicView() {
   };
 
   const jobRequestsQuery = useMemoFirebase(() => 
-    firestore && user ? query(collection(firestore, "jobs"), where("status", "in", ["Pending", "Accepted"])) : null
+    firestore && user ? query(
+      collection(firestore, "jobs"), 
+      or(
+        where("status", "==", "Pending"),
+        where("mechanicId", "==", user.uid)
+      )
+    ) : null
   , [firestore, user]);
 
   const { data: jobRequests, isLoading: isLoadingJobs } = useCollection<JobRequest>(jobRequestsQuery);
+
+  const filteredRequests = jobRequests?.filter(job => 
+    job.status === 'Pending' || (job.mechanicId === user?.uid && ['Accepted', 'In Progress'].includes(job.status))
+  );
 
   return (
     <div className="space-y-6">
@@ -68,12 +78,12 @@ export function MechanicView() {
       
       <div>
         <h2 className="text-xl font-semibold mb-4">
-          {language === 'ar' ? 'طلبات الخدمة المفتوحة' : 'Open Service Requests'}
+          {language === 'ar' ? 'طلبات الخدمة المتاحة' : 'Available Service Requests'}
         </h2>
         {isLoadingJobs && user && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full mb-4" />)}
-        {jobRequests && jobRequests.length > 0 ? (
+        {filteredRequests && filteredRequests.length > 0 ? (
           <div className="space-y-4">
-            {jobRequests.map((request) => (
+            {filteredRequests.map((request) => (
               <JobRequestCard key={request.id} request={request} userRole="mechanic" />
             ))}
           </div>

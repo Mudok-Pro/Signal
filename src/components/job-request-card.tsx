@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useApp } from "./app-provider";
@@ -5,11 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { JobRequest } from "@/lib/types";
-import { Car, Wrench, MapPin, User, Check, X, Clock } from 'lucide-react';
+import { Car, Wrench, MapPin, User, Check, X, Clock, UserCheck } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useState, useEffect } from "react";
-import { useFirestore, useUser, updateDocumentNonBlocking } from "@/firebase";
+import { useFirestore, useUser, updateDocumentNonBlocking, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 
 type JobRequestCardProps = {
@@ -31,6 +32,12 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
   const firestore = useFirestore();
   const { user } = useUser();
 
+  const mechanicDocRef = useMemoFirebase(() =>
+    firestore && request.mechanicId ? doc(firestore, 'mechanics', request.mechanicId) : null
+  , [firestore, request.mechanicId]);
+
+  const { data: mechanic } = useDoc(mechanicDocRef);
+
   useEffect(() => {
     if (request.createdAt) {
       const date = request.createdAt.toDate();
@@ -47,15 +54,13 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
   const handleAccept = () => {
     if (firestore && user) {
       const jobRef = doc(firestore, 'jobs', request.id);
-      updateDocumentNonBlocking(jobRef, { status: 'Accepted', mechanicId: user.uid });
+      updateDocumentNonBlocking(jobRef, { status: 'Accepted', mechanicId: user.uid, mechanicName: user.displayName });
     }
   };
 
   const handleDecline = () => {
     if (firestore) {
       const jobRef = doc(firestore, 'jobs', request.id);
-      // In a real app, you might want to re-queue it or just mark as cancelled.
-      // For now, we'll just remove the mechanic. A better approach is needed.
       updateDocumentNonBlocking(jobRef, { status: 'Cancelled' });
     }
   };
@@ -96,6 +101,8 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
             <p className="text-sm text-muted-foreground">{language === 'ar' ? 'موقع العميل' : 'Client Location'}</p>
           </div>
         </div>
+
+        {/* Show Client Name to Mechanic */}
         {userRole === 'mechanic' && request.clientName && (
              <div className="flex items-start gap-3 pt-2 border-t">
                 <User className="w-5 h-5 mt-1 text-muted-foreground shrink-0" />
@@ -105,6 +112,18 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
                 </div>
             </div>
         )}
+
+        {/* Show Mechanic Name to Client */}
+        {userRole === 'client' && (request.mechanicName || mechanic) && (
+            <div className="flex items-start gap-3 pt-2 border-t">
+                <UserCheck className="w-5 h-5 mt-1 text-muted-foreground shrink-0" />
+                <div>
+                    <p className="font-semibold">{language === 'ar' ? 'الميكانيكي' : 'Mechanic'}</p>
+                    <p className="text-sm text-muted-foreground">{request.mechanicName || mechanic?.name}</p>
+                </div>
+            </div>
+        )}
+
       </CardContent>
       {userRole === 'mechanic' && request.status === 'Pending' && (
         <CardFooter className="flex justify-end gap-2">

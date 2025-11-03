@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type Mechanic = {
@@ -17,6 +18,7 @@ export type JobRequest = {
   clientId: string;
   clientName?: string;
   mechanicId?: string;
+  mechanicName?: string; // Added field
   carModel: string;
   issue: string;
   location: any; // Ideally a GeoPoint
