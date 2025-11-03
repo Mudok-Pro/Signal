@@ -41,16 +41,18 @@ export function MapComponent({ mechanics }: { mechanics: Mechanic[] }) {
         mapStyle={mapStyle}
       >
         {mechanics.map((mechanic) => (
-          <Marker
-            key={mechanic.id}
-            longitude={mechanic.location.longitude}
-            latitude={mechanic.location.latitude}
-            anchor="bottom"
-          >
-            <div className="flex flex-col items-center_ text-center_ group_ cursor-pointer_">
-              <MapPin className="w-8 h-8 text-primary drop-shadow-lg" />
-            </div>
-          </Marker>
+          mechanic.location && (
+            <Marker
+              key={mechanic.id}
+              longitude={mechanic.location.longitude}
+              latitude={mechanic.location.latitude}
+              anchor="bottom"
+            >
+              <div className="flex flex-col items-center_ text-center_ group_ cursor-pointer_">
+                <MapPin className="w-8 h-8 text-primary drop-shadow-lg" />
+              </div>
+            </Marker>
+          )
         ))}
       </Map>
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent pointer-events-none" />
