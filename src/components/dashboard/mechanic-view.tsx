@@ -17,6 +17,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 function MechanicRegistration({ user }: { user: any }) {
     const { language } = useApp();
@@ -225,5 +226,3 @@ export function MechanicView() {
     </div>
   );
 }
-
-    
