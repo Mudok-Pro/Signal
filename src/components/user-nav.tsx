@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useApp } from "./app-provider"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
-import { CreditCard, LogIn, LogOut, Settings, User } from "lucide-react";
+import { CreditCard, LogIn, LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import Link from "next/link";
 import { signOut } from "firebase/auth";
@@ -36,13 +36,25 @@ export function UserNav() {
   }
 
   const handleLogout = () => {
-    signOut(auth);
+    if(auth) {
+      signOut(auth);
+    }
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+        {/* Mobile trigger */}
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full md:hidden">
+           <Avatar className="h-9 w-9 border">
+            {userAvatar && <AvatarImage src={user.photoURL || userAvatar.imageUrl} alt="User avatar" data-ai-hint={userAvatar.imageHint}/>}
+            <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
+         {/* Desktop trigger */}
+        <Button variant="ghost" className="relative hidden h-9 w-9 rounded-full md:flex">
           <Avatar className="h-9 w-9 border">
             {userAvatar && <AvatarImage src={user.photoURL || userAvatar.imageUrl} alt="User avatar" data-ai-hint={userAvatar.imageHint}/>}
             <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
@@ -61,7 +73,7 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
-            <User className="me-2 h-4 w-4" />
+            <UserIcon className="me-2 h-4 w-4" />
             <span>{language === 'ar' ? 'الملف الشخصي' : 'Profile'}</span>
           </DropdownMenuItem>
           <DropdownMenuItem>

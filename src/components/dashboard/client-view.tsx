@@ -6,7 +6,7 @@ import { MapComponent } from "@/components/map";
 import { MechanicCard } from "@/components/mechanic-card";
 import { JobRequestCard } from "@/components/job-request-card";
 import { RequestServiceDialog } from "../request-service-dialog";
-import { List } from "lucide-react";
+import { List, Map, Briefcase } from "lucide-react";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
 import type { Mechanic, JobRequest } from "@/lib/types";
@@ -16,7 +16,7 @@ import Link from "next/link";
 import { LogIn } from "lucide-react";
 
 export function ClientView() {
-  const { language } = useApp();
+  const { language, clientView, setClientView } = useApp();
   const firestore = useFirestore();
   const { user } = useUser();
 
@@ -46,18 +46,19 @@ export function ClientView() {
   }
 
   return (
-    <Tabs defaultValue="find" className="w-full">
+    <Tabs value={clientView} onValueChange={(value) => setClientView(value as 'find' | 'requests')} className="w-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <h1 className="text-2xl font-bold tracking-tight">
           {language === 'ar' ? 'لوحة تحكم العميل' : 'Client Dashboard'}
         </h1>
         <div className="flex items-center gap-2">
-          <TabsList>
+          <TabsList className="hidden md:inline-flex">
             <TabsTrigger value="find" className="gap-1">
-              <List className="h-4 w-4"/>
+              <Map className="h-4 w-4"/>
               {language === 'ar' ? 'بحث' : 'Find'}
             </TabsTrigger>
-            <TabsTrigger value="requests">
+            <TabsTrigger value="requests" className="gap-1">
+              <Briefcase className="h-4 w-4" />
               {language === 'ar' ? 'طلباتي' : 'My Requests'}
             </TabsTrigger>
           </TabsList>

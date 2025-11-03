@@ -3,17 +3,25 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 type Language = 'ar' | 'en';
+type Role = 'client' | 'mechanic';
+type ClientView = 'find' | 'requests';
 
 type AppContextType = {
   language: Language;
   setLanguage: (lang: Language) => void;
   direction: 'rtl' | 'ltr';
+  role: Role;
+  setRole: (role: Role) => void;
+  clientView: ClientView;
+  setClientView: (view: ClientView) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>('ar');
+  const [role, setRole] = useState<Role>('client');
+  const [clientView, setClientView] = useState<ClientView>('find');
   const direction = language === 'ar' ? 'rtl' : 'ltr';
 
   useEffect(() => {
@@ -23,7 +31,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [language, direction]);
 
   return (
-    <AppContext.Provider value={{ language, setLanguage, direction }}>
+    <AppContext.Provider value={{ language, setLanguage, direction, role, setRole, clientView, setClientView }}>
       {children}
     </AppContext.Provider>
   );
