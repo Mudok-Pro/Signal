@@ -6,7 +6,7 @@ import { MapComponent } from "@/components/map";
 import { MechanicCard } from "@/components/mechanic-card";
 import { JobRequestCard } from "@/components/job-request-card";
 import { RequestServiceDialog } from "../request-service-dialog";
-import { List, Map, Briefcase } from "lucide-react";
+import { List, Map, Briefcase, Search } from "lucide-react";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
 import type { Mechanic, JobRequest } from "@/lib/types";
@@ -14,11 +14,15 @@ import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import { LogIn } from "lucide-react";
+import { TopServices } from "./top-services";
+import { useState } from "react";
+import { Input } from "../ui/input";
 
 export function ClientView() {
   const { language, clientView, setClientView } = useApp();
   const firestore = useFirestore();
   const { user } = useUser();
+  const [selectedService, setSelectedService] = useState<string | null>(null);
 
   const mechanicsQuery = useMemoFirebase(() => 
     firestore && user ? query(collection(firestore, "mechanics"), where("available", "==", true)) : null
@@ -68,7 +72,18 @@ export function ClientView() {
       
       <TabsContent value="find">
         <div className="space-y-6">
+          <div className="relative">
+             <Search className="absolute rtl:right-3 ltr:left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input 
+              placeholder={language === 'ar' ? 'ما نوع الخدمة التي تحتاجها ؟' : 'What service do you need?'}
+              className="w-full rounded-full bg-background ltr:pl-10 rtl:pr-10"
+            />
+          </div>
+
           <MapComponent mechanics={mechanics || []} />
+          
+          <TopServices selectedService={selectedService} onSelectService={setSelectedService} />
+
           <div>
             <h2 className="text-xl font-semibold mb-4">{language === 'ar' ? 'الميكانيكيون المتاحون' : 'Available Mechanics'}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
