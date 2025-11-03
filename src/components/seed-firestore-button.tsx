@@ -3,16 +3,19 @@
 
 import { useFirestore, useUser } from "@/firebase";
 import { Button } from "./ui/button";
-import { collection, doc, writeBatch } from "firebase/firestore";
+import { collection, doc, writeBatch, GeoPoint } from "firebase/firestore";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
+// Seed locations around Riyadh, Saudi Arabia
+const baseLocation = { lat: 24.7136, lng: 46.6753 };
+
 const mechanicsToSeed = [
-    { name: "أحمد العلي", rating: 4.8, reviews: 124, distance: 2.5, available: true, id: 'mech_ahmed', avatarId: 'mech1' },
-    { name: "محمد الغامدي", rating: 4.9, reviews: 210, distance: 4.1, available: true, id: 'mech_mohammed', avatarId: 'mech2' },
-    { name: "خالد المصري", rating: 4.7, reviews: 88, distance: 5.2, available: false, id: 'mech_khaled', avatarId: 'mech3' },
-    { name: "سارة عبد الله", rating: 5.0, reviews: 95, distance: 8.0, available: true, id: 'mech_sarah', avatarId: 'mech4' },
+    { name: "أحمد العلي", rating: 4.8, reviews: 124, distance: 2.5, available: true, id: 'mech_ahmed', avatarId: 'mech1', locationOffset: { lat: 0.05, lng: -0.02 } },
+    { name: "محمد الغامدي", rating: 4.9, reviews: 210, distance: 4.1, available: true, id: 'mech_mohammed', avatarId: 'mech2', locationOffset: { lat: -0.03, lng: 0.06 } },
+    { name: "خالد المصري", rating: 4.7, reviews: 88, distance: 5.2, available: false, id: 'mech_khaled', avatarId: 'mech3', locationOffset: { lat: 0.08, lng: 0.08 } },
+    { name: "سارة عبد الله", rating: 5.0, reviews: 95, distance: 8.0, available: true, id: 'mech_sarah', avatarId: 'mech4', locationOffset: { lat: -0.07, lng: -0.05 } },
 ];
 
 export function SeedFirestoreButton() {
@@ -32,6 +35,8 @@ export function SeedFirestoreButton() {
         mechanicsToSeed.forEach(mechanic => {
             const docRef = doc(mechanicsCollection, mechanic.id);
             const avatar = PlaceHolderImages.find(img => img.id === mechanic.avatarId);
+            const location = new GeoPoint(baseLocation.lat + mechanic.locationOffset.lat, baseLocation.lng + mechanic.locationOffset.lng);
+
             batch.set(docRef, {
                 name: mechanic.name,
                 rating: mechanic.rating,
@@ -40,7 +45,7 @@ export function SeedFirestoreButton() {
                 available: mechanic.available,
                 avatarUrl: avatar?.imageUrl || '',
                 avatarHint: avatar?.imageHint || '',
-                location: null // Placeholder for GeoPoint
+                location: location
             });
         });
 

@@ -2,7 +2,7 @@
 
 import { useApp } from "@/components/app-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPlaceholder } from "@/components/map-placeholder";
+import { MapComponent } from "@/components/map";
 import { MechanicCard } from "@/components/mechanic-card";
 import { JobRequestCard } from "@/components/job-request-card";
 import { RequestServiceDialog } from "../request-service-dialog";
@@ -67,7 +67,7 @@ export function ClientView() {
       
       <TabsContent value="find">
         <div className="space-y-6">
-          <MapPlaceholder />
+          <MapComponent mechanics={mechanics || []} />
           <div>
             <h2 className="text-xl font-semibold mb-4">{language === 'ar' ? 'الميكانيكيون المتاحون' : 'Available Mechanics'}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

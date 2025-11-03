@@ -1,5 +1,5 @@
 
-import type { Timestamp } from 'firebase/firestore';
+import type { Timestamp, GeoPoint } from 'firebase/firestore';
 
 export type Mechanic = {
   id: string;
@@ -10,7 +10,7 @@ export type Mechanic = {
   available: boolean;
   avatarUrl: string;
   avatarHint: string;
-  location: any; // Ideally a GeoPoint
+  location: GeoPoint;
 };
 
 export type JobRequest = {
@@ -21,7 +21,7 @@ export type JobRequest = {
   mechanicName?: string; // Added field
   carModel: string;
   issue: string;
-  location: any; // Ideally a GeoPoint
+  location: GeoPoint | null;
   status: 'Pending' | 'Accepted' | 'In Progress' | 'Completed' | 'Cancelled';
   createdAt: Timestamp;
 };

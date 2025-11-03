@@ -33,6 +33,12 @@ const nextConfig: NextConfig = {
         hostname: 'i.imgur.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.maptiler.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
