@@ -72,18 +72,24 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <UserIcon className="me-2 h-4 w-4" />
-            <span>{language === 'ar' ? 'الملف الشخصي' : 'Profile'}</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CreditCard className="me-2 h-4 w-4" />
-            <span>{language === 'ar' ? 'الفواتير' : 'Billing'}</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="me-2 h-4 w-4" />
-            <span>{language === 'ar' ? 'الإعدادات' : 'Settings'}</span>
-          </DropdownMenuItem>
+          <Link href="/profile" passHref>
+            <DropdownMenuItem>
+              <UserIcon className="me-2 h-4 w-4" />
+              <span>{language === 'ar' ? 'الملف الشخصي' : 'Profile'}</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/billing" passHref>
+            <DropdownMenuItem>
+              <CreditCard className="me-2 h-4 w-4" />
+              <span>{language === 'ar' ? 'الفواتير' : 'Billing'}</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/settings" passHref>
+            <DropdownMenuItem>
+              <Settings className="me-2 h-4 w-4" />
+              <span>{language === 'ar' ? 'الإعدادات' : 'Settings'}</span>
+            </DropdownMenuItem>
+          </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
