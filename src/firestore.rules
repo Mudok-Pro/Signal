@@ -17,22 +17,52 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+  
+    // --- Helper functions ---
+    
+    function isAdmin() {
+      // Check the 'role' field in the user's own profile document.
+      // This is secure because the rule to *write* to this document is protected.
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    function isJobOwner(clientId) {
+      return isSignedIn() && request.auth.uid == clientId;
+    }
+
+    function isJobOwnerExisting(clientId) {
+      return isJobOwner(clientId) && resource != null;
+    }
+    
+    function isAssignedMechanic(mechanicId) {
+      return isSignedIn() && request.auth.uid == mechanicId;
+    }
+
+    function isAssignedMechanicExisting(mechanicId) {
+      return isAssignedMechanic(mechanicId) && resource != null;
+    }
 
     /**
      * @description Controls access to user profiles and roles.
      * @path /users/{userId}
      */
     match /users/{userId} {
-      // A user can always read their own profile. This is the source of truth for their role.
-      allow get: if request.auth.uid == userId;
-      // Admins can list all user profiles for the admin dashboard.
+      allow get: if isOwner(userId);
       allow list: if isAdmin();
-      // A user can create their own profile document, typically on sign-up.
-      allow create: if request.auth.uid == userId;
-      // Only an admin can modify another user's profile (e.g., to change their role).
-      allow update: if isAdmin();
-      // Only an admin can delete a user's profile.
-      allow delete: if isAdmin();
+      allow create: if isOwner(userId);
+      allow update, delete: if isAdmin();
     }
     
     match /clients/{clientId} {
@@ -57,42 +87,6 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.clientId == request.auth.uid;
       allow update: if (isAssignedMechanicExisting(resource.data.mechanicId) || isJobOwnerExisting(resource.data.clientId)) || isAdmin();
       allow delete: if isJobOwnerExisting(resource.data.clientId) || isAdmin();
-    }
-
-    // --- Helper functions ---
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isJobOwner(clientId) {
-      return isSignedIn() && request.auth.uid == clientId;
-    }
-
-    function isJobOwnerExisting(clientId) {
-      return isJobOwner(clientId) && resource != null;
-    }
-    
-    function isAssignedMechanic(mechanicId) {
-      return isSignedIn() && request.auth.uid == mechanicId;
-    }
-
-    function isAssignedMechanicExisting(mechanicId) {
-      return isAssignedMechanic(mechanicId) && resource != null;
-    }
-
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-    
-    function isAdmin() {
-      // Check the 'role' field in the user's own profile document.
-      // This is secure because the rule to *write* to this document is protected.
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }
