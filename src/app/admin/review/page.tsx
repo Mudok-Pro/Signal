@@ -2,7 +2,7 @@
 'use client';
 
 import { useApp } from '@/components/app-provider';
-import { useCollection, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { useCollection, useFirestore, updateDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import type { Mechanic } from '@/lib/types';
 import { collection, query, where, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -19,13 +19,19 @@ export default function AdminReviewPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
 
-    const pendingMechanicsQuery = query(
-        collection(firestore, 'mechanics'),
-        where('status', '==', 'Pending')
-    );
+    const pendingMechanicsQuery = useMemoFirebase(() => 
+        firestore 
+            ? query(
+                collection(firestore, 'mechanics'),
+                where('status', '==', 'Pending')
+              )
+            : null
+    , [firestore]);
+
     const { data: mechanics, isLoading, error } = useCollection<Mechanic>(pendingMechanicsQuery);
 
     const handleApproval = (mechanicId: string, newStatus: 'Approved' | 'Rejected') => {
+        if (!firestore) return;
         const mechanicRef = doc(firestore, 'mechanics', mechanicId);
         updateDocumentNonBlocking(mechanicRef, { status: newStatus });
         toast({
