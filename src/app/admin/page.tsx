@@ -2,13 +2,16 @@
 
 import { useApp } from '@/components/app-provider';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { UserProfile } from '@/lib/types';
-import { collection } from 'firebase/firestore';
+import type { UserProfile, JobRequest, Mechanic } from '@/lib/types';
+import { collection, query, where } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { Users, Wrench, ShieldAlert } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function AdminPage() {
     const { language } = useApp();
@@ -18,7 +21,19 @@ export default function AdminPage() {
         () => (firestore ? collection(firestore, 'users') : null),
         [firestore]
     );
-    const { data: users, isLoading } = useCollection<UserProfile>(usersCollection);
+    const jobsCollection = useMemoFirebase(
+        () => (firestore ? collection(firestore, 'jobs') : null),
+        [firestore]
+    );
+    const pendingMechanicsQuery = useMemoFirebase(
+        () => (firestore ? query(collection(firestore, 'mechanics'), where('status', '==', 'Pending')) : null),
+        [firestore]
+    );
+
+    const { data: users, isLoading: isLoadingUsers } = useCollection<UserProfile>(usersCollection);
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<JobRequest>(jobsCollection);
+    const { data: pendingMechanics, isLoading: isLoadingMechanics } = useCollection<Mechanic>(pendingMechanicsQuery);
+
 
     const roleStyles: { [key: string]: string } = {
         admin: 'bg-red-500 text-white',
@@ -26,11 +41,49 @@ export default function AdminPage() {
         client: 'bg-gray-500 text-white',
     }
 
+    const isLoading = isLoadingUsers || isLoadingJobs || isLoadingMechanics;
+
     return (
         <div className="container py-4 md:py-8">
             <h1 className="text-2xl font-bold tracking-tight mb-6">
                 {language === 'ar' ? 'لوحة تحكم المسؤول' : 'Admin Dashboard'}
             </h1>
+            
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">{language === 'ar' ? 'إجمالي المستخدمين' : 'Total Users'}</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{users?.length || 0}</div>}
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">{language === 'ar' ? 'إجمالي الطلبات' : 'Total Jobs'}</CardTitle>
+                        <Wrench className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{jobs?.length || 0}</div>}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">{language === 'ar' ? 'طلبات معلقة' : 'Pending Approvals'}</CardTitle>
+                        <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                         {isLoading ? <Skeleton className="h-8 w-16 mb-2" /> : <div className="text-2xl font-bold">{pendingMechanics?.length || 0}</div>}
+                        <Button size="sm" variant="outline" asChild className="text-xs">
+                           <Link href="/admin/review">
+                                {language === 'ar' ? 'مراجعة الطلبات' : 'Review Requests'}
+                           </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+
             <Card>
                 <CardHeader>
                     <CardTitle>{language === 'ar' ? 'المستخدمون' : 'Users'}</CardTitle>
@@ -45,7 +98,7 @@ export default function AdminPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {isLoading && Array.from({length: 3}).map((_, i) => (
+                            {isLoadingUsers && Array.from({length: 3}).map((_, i) => (
                                 <TableRow key={i}>
                                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-40" /></TableCell>
