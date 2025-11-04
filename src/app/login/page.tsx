@@ -20,6 +20,7 @@ import {
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function LoginPage() {
   const { language } = useApp();
@@ -28,10 +29,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [role, setRole] = useState<'client' | 'mechanic'>('client');
 
   const handleAuthAction = () => {
     if (isSignUp) {
-      initiateEmailSignUp(auth, email, password);
+      initiateEmailSignUp(auth, email, password, role);
     } else {
       initiateEmailSignIn(auth, email, password);
     }
@@ -91,6 +93,21 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          {isSignUp && (
+            <div className="space-y-2">
+                <Label>{language === 'ar' ? 'أرغب في التسجيل كـ' : 'I want to register as a'}</Label>
+                <RadioGroup defaultValue="client" className="flex gap-4 pt-2" onValueChange={(value: 'client' | 'mechanic') => setRole(value)}>
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                        <RadioGroupItem value="client" id="role-client" />
+                        <Label htmlFor="role-client">{language === 'ar' ? 'عميل' : 'Client'}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                        <RadioGroupItem value="mechanic" id="role-mechanic" />
+                        <Label htmlFor="role-mechanic">{language === 'ar' ? 'ميكانيكي' : 'Mechanic'}</Label>
+                    </div>
+                </RadioGroup>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button className="w-full" onClick={handleAuthAction}>
