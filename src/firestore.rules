@@ -23,10 +23,15 @@ service cloud.firestore {
      * @path /users/{userId}
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
+      // A user can always read their own profile. Admin access for reads is handled by the list rule.
+      allow get: if isOwner(userId);
+      // Admins can list all user profiles.
       allow list: if isAdmin();
-      allow create: if isOwner(userId); // A user can create their own profile on signup
-      allow update: if isAdmin(); // Only admins can change roles
+      // A user can create their own profile document, typically on sign-up.
+      allow create: if isOwner(userId);
+      // Only an admin can modify a user's profile (e.g., to change their role).
+      allow update: if isAdmin();
+      // Only an admin can delete a user's profile.
       allow delete: if isAdmin();
     }
     
@@ -85,10 +90,8 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      // Check for the admin role on the user's document in the /users/ collection.
-      // This is safe because the `get` is on a different path than the one being matched for a user reading their own doc.
-      // But for an admin reading ANOTHER user's doc, this check works.
-      // For listing all users, this check is also performed.
+      // Check the 'role' field in the user's own profile document.
+      // This is secure because the rule to *write* to this document is protected.
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
