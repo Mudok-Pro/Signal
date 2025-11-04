@@ -1,7 +1,7 @@
 'use client';
 
 import { useApp } from '@/components/app-provider';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,11 @@ import { cn } from '@/lib/utils';
 export default function AdminPage() {
     const { language } = useApp();
     const firestore = useFirestore();
-    const usersCollection = collection(firestore, 'users');
+    
+    const usersCollection = useMemoFirebase(
+        () => (firestore ? collection(firestore, 'users') : null),
+        [firestore]
+    );
     const { data: users, isLoading } = useCollection<UserProfile>(usersCollection);
 
     const roleStyles: { [key: string]: string } = {
