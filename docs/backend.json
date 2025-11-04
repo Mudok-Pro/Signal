@@ -96,6 +96,19 @@
           "items": {
             "type": "string"
           }
+        },
+        "professionId": {
+          "type": "string",
+          "description": "The mechanic's Profession ID or Work ID."
+        },
+        "yearsOfExperience": {
+          "type": "number",
+          "description": "The mechanic's years of professional experience."
+        },
+        "status": {
+            "type": "string",
+            "enum": ["Pending", "Approved", "Rejected"],
+            "description": "The approval status of the mechanic's profile."
         }
       },
       "required": [
@@ -104,7 +117,10 @@
         "email",
         "phoneNumber",
         "location",
-        "availability"
+        "availability",
+        "professionId",
+        "yearsOfExperience",
+        "status"
       ]
     },
     "JobRequest": {
@@ -224,3 +240,4 @@
     "reasoning": "A new 'users' collection is added to act as the source of truth for user roles, enforcing a single role per user and enabling role-based access control throughout the application. This simplifies role checks and management, especially for the new admin role."
   }
 }
+

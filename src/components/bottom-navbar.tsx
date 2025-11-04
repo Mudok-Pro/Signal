@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useApp } from "@/components/app-provider";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Map, GanttChartSquare } from 'lucide-react';
+import { Briefcase, Map, GanttChartSquare, ShieldCheck } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { UserNav } from "./user-nav";
 import { usePathname } from "next/navigation";
@@ -22,7 +23,8 @@ export function BottomNavbar() {
         }
          if (pathname.startsWith('/admin')) {
              return [
-                { id: 'dashboard', label: language === 'ar' ? 'لوحة التحكم' : 'Dashboard', icon: GanttChartSquare, href: '/admin' },
+                { id: 'dashboard', label: language === 'ar' ? 'المستخدمون' : 'Users', icon: GanttChartSquare, href: '/admin' },
+                { id: 'review', label: language === 'ar' ? 'مراجعة' : 'Review', icon: ShieldCheck, href: '/admin/review' },
              ]
          }
         // Default to client
@@ -67,3 +69,4 @@ export function BottomNavbar() {
         </div>
     );
 }
+

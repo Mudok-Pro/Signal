@@ -13,6 +13,9 @@ export type Mechanic = {
   avatarHint: string;
   location: GeoPoint;
   services?: string[]; // Array of service IDs
+  professionId: string;
+  yearsOfExperience: number;
+  status: 'Pending' | 'Approved' | 'Rejected';
 };
 
 export type JobRequest = {
@@ -36,5 +39,3 @@ export type UserProfile = {
   phoneNumber?: string;
   photoURL?: string;
 };
-
-    

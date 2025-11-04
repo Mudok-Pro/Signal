@@ -10,7 +10,7 @@
  * @Data Structure:
  *   - /users/{userId}: Stores user profiles and roles. The source of truth for authorization.
  *   - /clients/{clientId}: Stores client profiles, accessible only by the client.
- *   - /mechanics/{mechanicId}: Stores mechanic profiles, accessible only by the mechanic.
+ *   - /mechanics/{mechanicId}: Stores mechanic profiles, accessible only by the mechanic. Admins can approve them.
  *   - /jobs/{jobId}: Stores job requests, accessible by the client who created the
  *     job and the assigned mechanic.
  */
@@ -83,9 +83,14 @@ service cloud.firestore {
     match /mechanics/{mechanicId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn(); // Allow signed-in users to list mechanics.
-      allow create: if isSignedIn();
-      allow update: if isExistingOwner(mechanicId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(mechanicId);
+      // Mechanic can create their own profile, but status must be 'Pending'
+      allow create: if isOwner(mechanicId) && request.resource.data.status == 'Pending';
+      
+      // Mechanic can update their profile if they are the owner and not changing their status.
+      // Admin can update any part of the profile (including changing status).
+      allow update: if (isExistingOwner(mechanicId) && request.resource.data.status == resource.data.status) || isAdmin();
+      
+      allow delete: if isExistingOwner(mechanicId) || isAdmin();
     }
 
     match /jobs/{jobId} {
@@ -97,3 +102,4 @@ service cloud.firestore {
     }
   }
 }
+

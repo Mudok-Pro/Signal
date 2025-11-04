@@ -6,7 +6,7 @@ import { useApp } from "@/components/app-provider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { JobRequestCard } from "@/components/job-request-card";
-import { Bell, BellOff, LogIn } from "lucide-react";
+import { Bell, BellOff, LogIn, Clock, ShieldCheck, ShieldX } from "lucide-react";
 import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking } from "@/firebase";
 import { collection, query, where, doc, GeoPoint } from "firebase/firestore";
 import type { JobRequest, Mechanic } from "@/lib/types";
@@ -20,10 +20,14 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { services } from '@/lib/services';
 import { Checkbox } from '../ui/checkbox';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 function MechanicRegistration({ user }: { user: any }) {
     const { language } = useApp();
-    const [name, setName] = useState('');
+    const [name, setName] = useState(user.displayName || '');
+    const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || '');
+    const [professionId, setProfessionId] = useState('');
+    const [yearsOfExperience, setYearsOfExperience] = useState('');
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -37,11 +41,11 @@ function MechanicRegistration({ user }: { user: any }) {
     };
 
     const handleRegistration = () => {
-        if (!firestore || !user || !name) {
+        if (!firestore || !user || !name || !professionId || !yearsOfExperience) {
             toast({
                 variant: 'destructive',
-                title: language === 'ar' ? 'خطأ' : 'Error',
-                description: language === 'ar' ? 'الرجاء إدخال اسمك.' : 'Please enter your name.',
+                title: language === 'ar' ? 'معلومات ناقصة' : 'Missing Information',
+                description: language === 'ar' ? 'الرجاء ملء جميع الحقول المطلوبة.' : 'Please fill out all required fields.',
             });
             return;
         }
@@ -53,42 +57,60 @@ function MechanicRegistration({ user }: { user: any }) {
             name,
             email: user.email,
             available: false,
-            rating: 5.0,
-            reviews: 1,
+            rating: 0,
+            reviews: 0,
             distance: 0,
             avatarUrl: user.photoURL || avatar?.imageUrl || '',
             avatarHint: avatar?.imageHint || '',
-            location: new GeoPoint(24.7136, 46.6753),
-            services: selectedServices
+            location: new GeoPoint(24.7136, 46.6753), // Default location, should be updated
+            services: selectedServices,
+            professionId,
+            yearsOfExperience: parseInt(yearsOfExperience, 10),
+            status: 'Pending',
         };
 
         setDocumentNonBlocking(mechanicDocRef, newMechanic, { merge: true });
         
         toast({
-            title: language === 'ar' ? 'تم التسجيل بنجاح!' : 'Registration Successful!',
-            description: language === 'ar' ? 'مرحباً بك في فريقنا. يمكنك الآن ضبط حالة توفرك.' : 'Welcome to the team. You can now set your availability.',
+            title: language === 'ar' ? 'تم إرسال الطلب' : 'Registration Submitted',
+            description: language === 'ar' ? 'تم إرسال ملفك الشخصي للمراجعة. سيتم إعلامك عند الموافقة عليه.' : 'Your profile has been submitted for review. You will be notified upon approval.',
         });
     };
 
     return (
         <div className="flex justify-center items-center py-10">
-            <Card className="w-full max-w-md">
+            <Card className="w-full max-w-lg">
                 <CardHeader>
-                    <CardTitle>{language === 'ar' ? 'كن ميكانيكيًا' : 'Become a Mechanic'}</CardTitle>
-                    <CardDescription>{language === 'ar' ? 'أكمل ملفك الشخصي لبدء تلقي طلبات الخدمة.' : 'Complete your profile to start receiving service requests.'}</CardDescription>
+                    <CardTitle>{language === 'ar' ? 'كن ميكانيكيًا معتمدًا' : 'Become a Certified Mechanic'}</CardTitle>
+                    <CardDescription>{language === 'ar' ? 'أكمل ملفك الشخصي لبدء تلقي طلبات الخدمة. ستتم مراجعة ملفك من قبل المسؤول.' : 'Complete your profile to start receiving service requests. Your profile will be reviewed by an admin.'}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</Label>
-                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={language === 'ar' ? 'أدخل اسمك' : 'Enter your name'} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</Label>
+                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={language === 'ar' ? 'أدخل اسمك' : 'Enter your name'} />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="email">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</Label>
+                            <Input id="email" value={user.email || ''} disabled />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="phone">{language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</Label>
+                            <Input id="phone" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder={language === 'ar' ? 'أدخل رقم هاتفك' : 'Enter your phone number'} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="professionId">{language === 'ar' ? 'رقم بطاقة الحرفي' : 'Profession ID'}</Label>
+                            <Input id="professionId" value={professionId} onChange={(e) => setProfessionId(e.target.value)} placeholder="بطاقة حرفي" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="experience">{language === 'ar' ? 'سنوات الخبرة' : 'Years of Experience'}</Label>
+                            <Input id="experience" type="number" value={yearsOfExperience} onChange={(e) => setYearsOfExperience(e.target.value)} placeholder="e.g., 5" />
+                        </div>
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="email">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</Label>
-                        <Input id="email" value={user.email || ''} disabled />
-                    </div>
-                    <div className="space-y-2">
+                    
+                    <div className="space-y-2 pt-2">
                         <Label>{language === 'ar' ? 'خدماتي' : 'My Services'}</Label>
-                        <div className="grid grid-cols-2 gap-4 pt-2">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
                             {services.map(service => (
                                 <div key={service.id} className="flex items-center space-x-2 space-x-reverse">
                                     <Checkbox
@@ -96,7 +118,7 @@ function MechanicRegistration({ user }: { user: any }) {
                                         checked={selectedServices.includes(service.id)}
                                         onCheckedChange={() => handleServiceChange(service.id)}
                                     />
-                                    <Label htmlFor={`service-${service.id}`} className="cursor-pointer">
+                                    <Label htmlFor={`service-${service.id}`} className="cursor-pointer text-sm font-normal">
                                         {language === 'ar' ? service.name : service.name_en}
                                     </Label>
                                 </div>
@@ -105,13 +127,12 @@ function MechanicRegistration({ user }: { user: any }) {
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button className="w-full" onClick={handleRegistration}>{language === 'ar' ? 'إكمال التسجيل' : 'Complete Registration'}</Button>
+                    <Button className="w-full" onClick={handleRegistration}>{language === 'ar' ? 'إرسال للمراجعة' : 'Submit for Review'}</Button>
                 </CardFooter>
             </Card>
         </div>
     );
 }
-
 
 export function MechanicView() {
   const { language } = useApp();
@@ -140,18 +161,18 @@ export function MechanicView() {
   };
 
   const jobRequestsQuery = useMemoFirebase(() => 
-    firestore && user ? query(
+    firestore && user && mechanicData?.status === 'Approved' ? query(
       collection(firestore, "jobs"), 
       where("status", "==", "Pending")
     ) : null
-  , [firestore, user]);
+  , [firestore, user, mechanicData]);
 
   const myJobsQuery = useMemoFirebase(() =>
-    firestore && user ? query(
+    firestore && user && mechanicData?.status === 'Approved' ? query(
         collection(firestore, 'jobs'),
         where('mechanicId', '==', user.uid)
     ) : null,
-  [firestore, user]);
+  [firestore, user, mechanicData]);
 
 
   const { data: availableRequests, isLoading: isLoadingJobs } = useCollection<JobRequest>(jobRequestsQuery);
@@ -169,7 +190,7 @@ export function MechanicView() {
 
   if (!user) {
     return (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card flex flex-col items-center gap-4">
+        <div className="text-center py-12 border-2 border-dashed rounded-lg flex flex-col items-center gap-4">
             <p className="text-muted-foreground">{language === 'ar' ? 'الرجاء تسجيل الدخول لعرض هذه الصفحة.' : 'Please log in to view this page.'}</p>
             <Button asChild>
                 <Link href="/login">
@@ -183,6 +204,34 @@ export function MechanicView() {
 
   if (!mechanicData) {
     return <MechanicRegistration user={user} />;
+  }
+
+  if (mechanicData.status === 'Pending') {
+    return (
+        <div className="container py-12 flex justify-center">
+            <Alert className="max-w-lg bg-card">
+                <Clock className="h-4 w-4" />
+                <AlertTitle>{language === 'ar' ? 'الحساب قيد المراجعة' : 'Account Under Review'}</AlertTitle>
+                <AlertDescription>
+                    {language === 'ar' ? 'لقد تم استلام طلبك وهو قيد المراجعة من قبل فريقنا. سنقوم بإعلامك بمجرد الموافقة على حسابك.' : 'Your application has been received and is currently being reviewed by our team. We will notify you once your account is approved.'}
+                </AlertDescription>
+            </Alert>
+        </div>
+    )
+  }
+
+  if (mechanicData.status === 'Rejected') {
+    return (
+        <div className="container py-12 flex justify-center">
+            <Alert variant="destructive" className="max-w-lg">
+                <ShieldX className="h-4 w-4" />
+                <AlertTitle>{language === 'ar' ? 'تم رفض الطلب' : 'Application Rejected'}</AlertTitle>
+                <AlertDescription>
+                    {language === 'ar' ? 'للأسف، لم نتمكن من الموافقة على طلبك في هذا الوقت. يرجى الاتصال بالدعم لمزيد من المعلومات.' : 'Unfortunately, we were unable to approve your application at this time. Please contact support for more information.'}
+                </AlertDescription>
+            </Alert>
+        </div>
+    )
   }
 
   return (
@@ -218,7 +267,7 @@ export function MechanicView() {
             ))}
           </div>
         ) : (
-          (!isLoadingMyJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card/80">
+          (!isLoadingMyJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-muted-foreground">
               {!user 
                 ? (language === 'ar' ? 'الرجاء تسجيل الدخول لعرض الطلبات.' : 'Please log in to view requests.')
@@ -241,7 +290,7 @@ export function MechanicView() {
             ))}
           </div>
         ) : (
-          (!isLoadingJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card/80">
+          (!isLoadingJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-muted-foreground">
               {!user 
                 ? (language === 'ar' ? 'الرجاء تسجيل الدخول لعرض الطلبات.' : 'Please log in to view requests.')
@@ -254,3 +303,4 @@ export function MechanicView() {
     </div>
   );
 }
+
