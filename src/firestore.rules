@@ -85,6 +85,10 @@ service cloud.firestore {
     }
     
     function isAdmin() {
+      // Check for the admin role on the user's document in the /users/ collection.
+      // This is safe because the `get` is on a different path than the one being matched for a user reading their own doc.
+      // But for an admin reading ANOTHER user's doc, this check works.
+      // For listing all users, this check is also performed.
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
