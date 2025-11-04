@@ -23,13 +23,13 @@ service cloud.firestore {
      * @path /users/{userId}
      */
     match /users/{userId} {
-      // A user can always read their own profile. Admin access for reads is handled by the list rule.
+      // A user can always read their own profile. This is the source of truth for their role.
       allow get: if isOwner(userId);
-      // Admins can list all user profiles.
+      // Admins can list all user profiles for the admin dashboard.
       allow list: if isAdmin();
       // A user can create their own profile document, typically on sign-up.
       allow create: if isOwner(userId);
-      // Only an admin can modify a user's profile (e.g., to change their role).
+      // Only an admin can modify another user's profile (e.g., to change their role).
       allow update: if isAdmin();
       // Only an admin can delete a user's profile.
       allow delete: if isAdmin();
