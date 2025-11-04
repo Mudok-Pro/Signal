@@ -24,11 +24,11 @@ service cloud.firestore {
      */
     match /users/{userId} {
       // A user can always read their own profile. This is the source of truth for their role.
-      allow get: if isOwner(userId);
+      allow get: if request.auth.uid == userId;
       // Admins can list all user profiles for the admin dashboard.
       allow list: if isAdmin();
       // A user can create their own profile document, typically on sign-up.
-      allow create: if isOwner(userId);
+      allow create: if request.auth.uid == userId;
       // Only an admin can modify another user's profile (e.g., to change their role).
       allow update: if isAdmin();
       // Only an admin can delete a user's profile.
