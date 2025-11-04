@@ -33,6 +33,8 @@ export type UserProfile = {
   email: string;
   name?: string;
   role: 'client' | 'mechanic' | 'admin';
+  phoneNumber?: string;
+  photoURL?: string;
 };
 
     

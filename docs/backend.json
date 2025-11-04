@@ -9,7 +9,9 @@
         "id": { "type": "string", "description": "Matches Firebase Auth UID." },
         "email": { "type": "string", "format": "email" },
         "name": { "type": "string" },
-        "role": { "type": "string", "enum": ["client", "mechanic", "admin"] }
+        "role": { "type": "string", "enum": ["client", "mechanic", "admin"] },
+        "phoneNumber": { "type": "string" },
+        "photoURL": { "type": "string", "format": "uri" }
       },
       "required": ["id", "email", "role"]
     },
