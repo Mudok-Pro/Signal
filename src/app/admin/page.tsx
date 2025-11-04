@@ -2,16 +2,17 @@
 
 import { useApp } from '@/components/app-provider';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { UserProfile, JobRequest, Mechanic } from '@/lib/types';
+import type { UserProfile, Mechanic } from '@/lib/types';
 import { collection, query, where } from 'firebase/firestore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { Users, Wrench, ShieldAlert } from 'lucide-react';
+import { Users, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { UserActions } from '@/components/admin/user-actions';
 
 export default function AdminPage() {
     const { language } = useApp();
@@ -21,19 +22,13 @@ export default function AdminPage() {
         () => (firestore ? collection(firestore, 'users') : null),
         [firestore]
     );
-    const jobsCollection = useMemoFirebase(
-        () => (firestore ? collection(firestore, 'jobs') : null),
-        [firestore]
-    );
     const pendingMechanicsQuery = useMemoFirebase(
         () => (firestore ? query(collection(firestore, 'mechanics'), where('status', '==', 'Pending')) : null),
         [firestore]
     );
 
     const { data: users, isLoading: isLoadingUsers } = useCollection<UserProfile>(usersCollection);
-    const { data: jobs, isLoading: isLoadingJobs } = useCollection<JobRequest>(jobsCollection);
     const { data: pendingMechanics, isLoading: isLoadingMechanics } = useCollection<Mechanic>(pendingMechanicsQuery);
-
 
     const roleStyles: { [key: string]: string } = {
         admin: 'bg-red-500 text-white',
@@ -41,7 +36,7 @@ export default function AdminPage() {
         client: 'bg-gray-500 text-white',
     }
 
-    const isLoading = isLoadingUsers || isLoadingJobs || isLoadingMechanics;
+    const isLoading = isLoadingUsers || isLoadingMechanics;
 
     return (
         <div className="container py-4 md:py-8">
@@ -59,15 +54,6 @@ export default function AdminPage() {
                         {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{users?.length || 0}</div>}
                     </CardContent>
                 </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{language === 'ar' ? 'إجمالي الطلبات' : 'Total Jobs'}</CardTitle>
-                        <Wrench className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{jobs?.length || 0}</div>}
-                    </CardContent>
-                </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">{language === 'ar' ? 'طلبات معلقة' : 'Pending Approvals'}</CardTitle>
@@ -75,18 +61,21 @@ export default function AdminPage() {
                     </CardHeader>
                     <CardContent>
                          {isLoading ? <Skeleton className="h-8 w-16 mb-2" /> : <div className="text-2xl font-bold">{pendingMechanics?.length || 0}</div>}
-                        <Button size="sm" variant="outline" asChild className="text-xs">
-                           <Link href="/admin/review">
-                                {language === 'ar' ? 'مراجعة الطلبات' : 'Review Requests'}
-                           </Link>
-                        </Button>
+                         {pendingMechanics && pendingMechanics.length > 0 && (
+                            <Button size="sm" variant="outline" asChild className="text-xs">
+                                <Link href="/admin/review">
+                                    {language === 'ar' ? 'مراجعة الطلبات' : 'Review Requests'}
+                                </Link>
+                            </Button>
+                         )}
                     </CardContent>
                 </Card>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>{language === 'ar' ? 'المستخدمون' : 'Users'}</CardTitle>
+                    <CardTitle>{language === 'ar' ? 'إدارة المستخدمين' : 'User Management'}</CardTitle>
+                    <CardDescription>{language === 'ar' ? 'عرض وتعديل أدوار المستخدمين وحالة حساباتهم.' : 'View and edit user roles and account status.'}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -95,6 +84,7 @@ export default function AdminPage() {
                                 <TableHead>{language === 'ar' ? 'الاسم' : 'Name'}</TableHead>
                                 <TableHead>{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</TableHead>
                                 <TableHead>{language === 'ar' ? 'الدور' : 'Role'}</TableHead>
+                                <TableHead className="text-right">{language === 'ar' ? 'الإجراءات' : 'Actions'}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -103,6 +93,7 @@ export default function AdminPage() {
                                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                                     <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                                 </TableRow>
                             ))}
                             {users?.map(user => (
@@ -113,6 +104,9 @@ export default function AdminPage() {
                                         <Badge className={cn('capitalize', roleStyles[user.role] || 'bg-gray-200')}>
                                             {user.role}
                                         </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <UserActions user={user} />
                                     </TableCell>
                                 </TableRow>
                             ))}
