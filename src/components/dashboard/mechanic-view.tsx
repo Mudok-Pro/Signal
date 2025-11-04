@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useApp } from "@/components/app-provider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { JobRequestCard } from "@/components/job-request-card";
-import { Bell, BellOff, LogIn, Clock, ShieldCheck, ShieldX } from "lucide-react";
+import { Bell, BellOff, LogIn, Clock, ShieldCheck, ShieldX, Upload, FileCheck } from "lucide-react";
 import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking } from "@/firebase";
 import { collection, query, where, doc, GeoPoint } from "firebase/firestore";
 import type { JobRequest, Mechanic } from "@/lib/types";
@@ -22,6 +22,50 @@ import { services } from '@/lib/services';
 import { Checkbox } from '../ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+function FileUploadInput({ label, id, onFileChange, fileName, language }: { label: string, id: string, onFileChange: (file: File | null) => void, fileName: string | null, language: 'ar' | 'en' }) {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileSelect = () => {
+        inputRef.current?.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files ? event.target.files[0] : null;
+        onFileChange(file);
+    };
+
+    return (
+        <div className="space-y-2">
+            <Label htmlFor={id}>{label}</Label>
+            <Input
+                id={id}
+                type="file"
+                ref={inputRef}
+                className="hidden"
+                onChange={handleFileChange}
+                accept="image/*,.pdf"
+            />
+            <Button
+                variant="outline"
+                onClick={handleFileSelect}
+                className="w-full justify-start text-left font-normal"
+            >
+                {fileName ? (
+                    <>
+                        <FileCheck className="me-2 text-green-500" />
+                        <span className="truncate">{fileName}</span>
+                    </>
+                ) : (
+                    <>
+                        <Upload className="me-2 text-muted-foreground" />
+                        <span className="text-muted-foreground">{language === 'ar' ? 'اختر ملفًا' : 'Choose a file'}...</span>
+                    </>
+                )}
+            </Button>
+        </div>
+    );
+}
+
 function MechanicRegistration({ user }: { user: any }) {
     const { language } = useApp();
     const [name, setName] = useState(user.displayName || '');
@@ -29,29 +73,37 @@ function MechanicRegistration({ user }: { user: any }) {
     const [professionId, setProfessionId] = useState('');
     const [yearsOfExperience, setYearsOfExperience] = useState('');
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
+    const [idCardFile, setIdCardFile] = useState<File | null>(null);
+    const [workIdFile, setWorkIdFile] = useState<File | null>(null);
+
     const firestore = useFirestore();
     const { toast } = useToast();
 
     const handleServiceChange = (serviceId: string) => {
-        setSelectedServices(prev => 
-            prev.includes(serviceId) 
-                ? prev.filter(id => id !== serviceId) 
+        setSelectedServices(prev =>
+            prev.includes(serviceId)
+                ? prev.filter(id => id !== serviceId)
                 : [...prev, serviceId]
         );
     };
 
     const handleRegistration = () => {
-        if (!firestore || !user || !name || !professionId || !yearsOfExperience) {
+        if (!firestore || !user || !name || !professionId || !yearsOfExperience || !idCardFile || !workIdFile) {
             toast({
                 variant: 'destructive',
                 title: language === 'ar' ? 'معلومات ناقصة' : 'Missing Information',
-                description: language === 'ar' ? 'الرجاء ملء جميع الحقول المطلوبة.' : 'Please fill out all required fields.',
+                description: language === 'ar' ? 'الرجاء ملء جميع الحقول وتحميل المستندات المطلوبة.' : 'Please fill out all fields and upload required documents.',
             });
             return;
         }
 
         const mechanicDocRef = doc(firestore, "mechanics", user.uid);
         const avatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+
+        // In a real app, you'd upload files to Firebase Storage first, then get the URLs.
+        // For now, we'll use placeholder URLs.
+        const idCardUrl = `placeholder/id_card_${user.uid}_${idCardFile.name}`;
+        const workIdUrl = `placeholder/work_id_${user.uid}_${workIdFile.name}`;
 
         const newMechanic: Omit<Mechanic, 'id'> = {
             name,
@@ -62,15 +114,17 @@ function MechanicRegistration({ user }: { user: any }) {
             distance: 0,
             avatarUrl: user.photoURL || avatar?.imageUrl || '',
             avatarHint: avatar?.imageHint || '',
-            location: new GeoPoint(24.7136, 46.6753), // Default location, should be updated
+            location: new GeoPoint(24.7136, 46.6753), // Default location
             services: selectedServices,
             professionId,
             yearsOfExperience: parseInt(yearsOfExperience, 10),
             status: 'Pending',
+            idCardUrl,
+            workIdUrl,
         };
 
         setDocumentNonBlocking(mechanicDocRef, newMechanic, { merge: true });
-        
+
         toast({
             title: language === 'ar' ? 'تم إرسال الطلب' : 'Registration Submitted',
             description: language === 'ar' ? 'تم إرسال ملفك الشخصي للمراجعة. سيتم إعلامك عند الموافقة عليه.' : 'Your profile has been submitted for review. You will be notified upon approval.',
@@ -79,7 +133,7 @@ function MechanicRegistration({ user }: { user: any }) {
 
     return (
         <div className="flex justify-center items-center py-10">
-            <Card className="w-full max-w-lg">
+            <Card className="w-full max-w-2xl">
                 <CardHeader>
                     <CardTitle>{language === 'ar' ? 'كن ميكانيكيًا معتمدًا' : 'Become a Certified Mechanic'}</CardTitle>
                     <CardDescription>{language === 'ar' ? 'أكمل ملفك الشخصي لبدء تلقي طلبات الخدمة. ستتم مراجعة ملفك من قبل المسؤول.' : 'Complete your profile to start receiving service requests. Your profile will be reviewed by an admin.'}</CardDescription>
@@ -90,24 +144,36 @@ function MechanicRegistration({ user }: { user: any }) {
                             <Label htmlFor="name">{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</Label>
                             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={language === 'ar' ? 'أدخل اسمك' : 'Enter your name'} />
                         </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="email">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</Label>
-                            <Input id="email" value={user.email || ''} disabled />
-                        </div>
-                         <div className="space-y-2">
+                        <div className="space-y-2">
                             <Label htmlFor="phone">{language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</Label>
                             <Input id="phone" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder={language === 'ar' ? 'أدخل رقم هاتفك' : 'Enter your phone number'} />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="professionId">{language === 'ar' ? 'رقم بطاقة الحرفي' : 'Profession ID'}</Label>
-                            <Input id="professionId" value={professionId} onChange={(e) => setProfessionId(e.target.value)} placeholder="بطاقة حرفي" />
+                            <Label htmlFor="professionId">{language === 'ar' ? 'رقم بطاقة الحرفي' : 'Profession ID Number'}</Label>
+                            <Input id="professionId" value={professionId} onChange={(e) => setProfessionId(e.target.value)} placeholder={language === 'ar' ? '123456789' : '123456789'} />
                         </div>
-                         <div className="space-y-2">
+                        <div className="space-y-2">
                             <Label htmlFor="experience">{language === 'ar' ? 'سنوات الخبرة' : 'Years of Experience'}</Label>
                             <Input id="experience" type="number" value={yearsOfExperience} onChange={(e) => setYearsOfExperience(e.target.value)} placeholder="e.g., 5" />
                         </div>
+                        
+                        <FileUploadInput 
+                            id="id-card-upload"
+                            label={language === 'ar' ? 'صورة الهوية الوطنية' : 'National ID Photo'}
+                            onFileChange={setIdCardFile}
+                            fileName={idCardFile?.name || null}
+                            language={language}
+                        />
+
+                        <FileUploadInput 
+                            id="work-id-upload"
+                            label={language === 'ar' ? 'صورة بطاقة الحرفي' : 'Profession ID Photo'}
+                            onFileChange={setWorkIdFile}
+                            fileName={workIdFile?.name || null}
+                            language={language}
+                        />
                     </div>
-                    
+
                     <div className="space-y-2 pt-2">
                         <Label>{language === 'ar' ? 'خدماتي' : 'My Services'}</Label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
@@ -190,7 +256,7 @@ export function MechanicView() {
 
   if (!user) {
     return (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg flex flex-col items-center gap-4">
+        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card/80 flex flex-col items-center gap-4">
             <p className="text-muted-foreground">{language === 'ar' ? 'الرجاء تسجيل الدخول لعرض هذه الصفحة.' : 'Please log in to view this page.'}</p>
             <Button asChild>
                 <Link href="/login">
@@ -209,7 +275,7 @@ export function MechanicView() {
   if (mechanicData.status === 'Pending') {
     return (
         <div className="container py-12 flex justify-center">
-            <Alert className="max-w-lg bg-card">
+            <Alert className="max-w-lg bg-card/80">
                 <Clock className="h-4 w-4" />
                 <AlertTitle>{language === 'ar' ? 'الحساب قيد المراجعة' : 'Account Under Review'}</AlertTitle>
                 <AlertDescription>
@@ -267,7 +333,7 @@ export function MechanicView() {
             ))}
           </div>
         ) : (
-          (!isLoadingMyJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg">
+          (!isLoadingMyJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card/80">
             <p className="text-muted-foreground">
               {!user 
                 ? (language === 'ar' ? 'الرجاء تسجيل الدخول لعرض الطلبات.' : 'Please log in to view requests.')
@@ -290,7 +356,7 @@ export function MechanicView() {
             ))}
           </div>
         ) : (
-          (!isLoadingJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg">
+          (!isLoadingJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card/80">
             <p className="text-muted-foreground">
               {!user 
                 ? (language === 'ar' ? 'الرجاء تسجيل الدخول لعرض الطلبات.' : 'Please log in to view requests.')
@@ -303,4 +369,3 @@ export function MechanicView() {
     </div>
   );
 }
-

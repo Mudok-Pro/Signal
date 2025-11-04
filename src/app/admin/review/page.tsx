@@ -10,8 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Check, X } from 'lucide-react';
+import { Check, X, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 export default function AdminReviewPage() {
     const { language } = useApp();
@@ -52,7 +53,8 @@ export default function AdminReviewPage() {
                                 <TableHead>{language === 'ar' ? 'الاسم' : 'Name'}</TableHead>
                                 <TableHead>{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</TableHead>
                                 <TableHead>{language === 'ar' ? 'رقم الحرفي' : 'Profession ID'}</TableHead>
-                                <TableHead>{language === 'ar' ? 'سنوات الخبرة' : 'Experience'}</TableHead>
+                                <TableHead>{language === 'ar' ? 'الخبرة' : 'Experience'}</TableHead>
+                                <TableHead>{language === 'ar' ? 'المستندات' : 'Documents'}</TableHead>
                                 <TableHead className="text-center">{language === 'ar' ? 'الإجراء' : 'Action'}</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -63,12 +65,13 @@ export default function AdminReviewPage() {
                                     <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                    <TableCell><Skeleton className="h-8 w-20" /></TableCell>
                                     <TableCell className="flex justify-center gap-2"><Skeleton className="h-8 w-8" /><Skeleton className="h-8 w-8" /></TableCell>
                                 </TableRow>
                             ))}
                             {!isLoading && mechanics?.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
+                                    <TableCell colSpan={6} className="h-24 text-center">
                                         {language === 'ar' ? 'لا توجد طلبات معلقة حاليًا.' : 'No pending requests at the moment.'}
                                     </TableCell>
                                 </TableRow>
@@ -81,6 +84,26 @@ export default function AdminReviewPage() {
                                         <Badge variant="secondary">{mechanic.professionId}</Badge>
                                     </TableCell>
                                      <TableCell>{language === 'ar' ? `${mechanic.yearsOfExperience} سنوات` : `${mechanic.yearsOfExperience} years`}</TableCell>
+                                    <TableCell>
+                                       <div className="flex gap-2">
+                                            {mechanic.idCardUrl && (
+                                                <Button asChild variant="outline" size="sm">
+                                                    <Link href={mechanic.idCardUrl} target="_blank">
+                                                        <Download className="h-4 w-4 me-1.5" />
+                                                        {language === 'ar' ? 'الهوية' : 'ID'}
+                                                    </Link>
+                                                </Button>
+                                            )}
+                                            {mechanic.workIdUrl && (
+                                                <Button asChild variant="outline" size="sm">
+                                                    <Link href={mechanic.workIdUrl} target="_blank">
+                                                        <Download className="h-4 w-4 me-1.5" />
+                                                        {language === 'ar' ? 'العمل' : 'Work'}
+                                                    </Link>
+                                                </Button>
+                                            )}
+                                       </div>
+                                    </TableCell>
                                     <TableCell className="flex justify-center gap-2">
                                         <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleApproval(mechanic.id, 'Rejected')}>
                                             <X className="h-5 w-5" />
@@ -98,4 +121,3 @@ export default function AdminReviewPage() {
         </div>
     )
 }
-

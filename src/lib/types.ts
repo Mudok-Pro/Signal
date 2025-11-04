@@ -16,6 +16,8 @@ export type Mechanic = {
   professionId: string;
   yearsOfExperience: number;
   status: 'Pending' | 'Approved' | 'Rejected';
+  idCardUrl?: string;
+  workIdUrl?: string;
 };
 
 export type JobRequest = {
