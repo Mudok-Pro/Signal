@@ -159,7 +159,7 @@ export function JobRequestCard({ request, userRole }: JobRequestCardProps) {
   }
 
   return (
-    <Card className="transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+    <Card className="transition-all duration-300">
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
             <div>

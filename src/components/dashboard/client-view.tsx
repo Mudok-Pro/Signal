@@ -101,7 +101,7 @@ export function ClientView() {
                 <MechanicCard key={mechanic.id} mechanic={mechanic} />
               ))}
                {!isLoadingMechanics && filteredMechanics.length === 0 && (
-                <div className="col-span-full text-center py-12 border-2 border-dashed rounded-lg bg-card">
+                <div className="col-span-full text-center py-12 border-2 border-dashed rounded-lg bg-card/80">
                   <p className="text-muted-foreground">
                     {selectedService 
                         ? (language === 'ar' ? 'لا يوجد ميكانيكيون متاحون لهذه الخدمة حاليًا.' : 'No available mechanics for this service currently.')
@@ -122,7 +122,7 @@ export function ClientView() {
                 <JobRequestCard key={request.id} request={request} userRole="client" />
             ))}
              {myRequests?.length === 0 && !isLoadingRequests && (
-              <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card">
+              <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card/80">
                   <p className="text-muted-foreground">{language === 'ar' ? 'لم تقم بإنشاء أي طلبات بعد.' : 'You have not created any requests yet.'}</p>
               </div>
             )}

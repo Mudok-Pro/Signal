@@ -218,7 +218,7 @@ export function MechanicView() {
             ))}
           </div>
         ) : (
-          (!isLoadingMyJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card">
+          (!isLoadingMyJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card/80">
             <p className="text-muted-foreground">
               {!user 
                 ? (language === 'ar' ? 'الرجاء تسجيل الدخول لعرض الطلبات.' : 'Please log in to view requests.')
@@ -241,7 +241,7 @@ export function MechanicView() {
             ))}
           </div>
         ) : (
-          (!isLoadingJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card">
+          (!isLoadingJobs || !user) && <div className="text-center py-12 border-2 border-dashed rounded-lg bg-card/80">
             <p className="text-muted-foreground">
               {!user 
                 ? (language === 'ar' ? 'الرجاء تسجيل الدخول لعرض الطلبات.' : 'Please log in to view requests.')

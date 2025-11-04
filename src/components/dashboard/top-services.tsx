@@ -30,10 +30,10 @@ export function TopServices({ selectedService, onSelectService }: TopServicesPro
             key={service.id}
             onClick={() => handleServiceClick(service.id)}
             className={cn(
-              "flex flex-col items-center justify-center text-center p-3 rounded-lg border transition-all duration-200 ease-in-out",
+              "flex flex-col items-center justify-center text-center p-3 rounded-lg transition-all duration-200 ease-in-out",
               selectedService === service.id 
-                ? "bg-accent text-accent-foreground border-accent shadow-md" 
-                : "bg-card hover:bg-muted/80 border-border"
+                ? "bg-accent text-accent-foreground shadow-lg" 
+                : "bg-card hover:bg-muted/80"
             )}
           >
             <div className="relative w-9 h-9 mb-2">

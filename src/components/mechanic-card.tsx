@@ -16,7 +16,7 @@ export function MechanicCard({ mechanic }: MechanicCardProps) {
   const { language } = useApp();
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+    <Card className="flex flex-col overflow-hidden transition-all duration-200">
       <CardHeader className="flex-row gap-4 items-center p-4">
         <div className="relative shrink-0">
           <Image
@@ -61,5 +61,3 @@ export function MechanicCard({ mechanic }: MechanicCardProps) {
     </Card>
   );
 }
-
-    
