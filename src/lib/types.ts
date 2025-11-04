@@ -32,7 +32,7 @@ export type UserProfile = {
   id: string;
   email: string;
   name?: string;
-  role: 'client' | 'mechanic';
+  role: 'client' | 'mechanic' | 'admin';
 };
 
     

@@ -2,69 +2,64 @@
 
 import { useApp } from "@/components/app-provider";
 import { Button } from "@/components/ui/button";
-import { Home, Briefcase, User, Map } from 'lucide-react';
+import { Briefcase, Map, GanttChartSquare } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { UserNav } from "./user-nav";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+
 
 export function BottomNavbar() {
-    const { language, role, setRole, clientView, setClientView } = useApp();
+    const { language } = useApp();
+    const pathname = usePathname();
 
-    const navItems = role === 'client' ? [
-        { id: 'find', label: language === 'ar' ? 'بحث' : 'Find', icon: Map, view: 'find' },
-        { id: 'requests', label: language === 'ar' ? 'طلباتي' : 'Requests', icon: Briefcase, view: 'requests' },
-    ] : [
-        { id: 'jobs', label: language === 'ar' ? 'وظائفي' : 'Jobs', icon: Briefcase, view: 'jobs' },
-        { id: 'available', label: language === 'ar' ? 'متاح' : 'Available', icon: Map, view: 'available' },
-    ];
+    const getNavItems = () => {
+        if (pathname.startsWith('/mechanic')) {
+            return [
+                { id: 'jobs', label: language === 'ar' ? 'وظائفي' : 'Jobs', icon: Briefcase, href: '/mechanic' },
+                { id: 'available', label: language === 'ar' ? 'متاح' : 'Available', icon: Map, href: '/mechanic' },
+            ];
+        }
+         if (pathname.startsWith('/admin')) {
+             return [
+                { id: 'dashboard', label: language === 'ar' ? 'لوحة التحكم' : 'Dashboard', icon: GanttChartSquare, href: '/admin' },
+             ]
+         }
+        // Default to client
+        return [
+            { id: 'find', label: language === 'ar' ? 'بحث' : 'Find', icon: Map, href: '/client' },
+            { id: 'requests', label: language === 'ar' ? 'طلباتي' : 'My Requests', icon: Briefcase, href: '/client?view=requests' },
+        ];
+    }
+    
+    const navItems = getNavItems();
+    
+    // Don't show nav on login page
+    if (pathname === '/login') return null;
 
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
-            <div className="grid h-16 grid-cols-4 items-center justify-center px-2">
+            <div className="grid h-16 grid-cols-3 items-center justify-center px-2">
                 
-                {/* Role Switcher */}
-                <div className="flex justify-center">
-                    <Button
-                        variant="ghost"
-                        className={cn(
-                            "flex h-auto flex-col items-center justify-center gap-1 p-0 text-muted-foreground",
-                            role === 'client' && 'text-primary'
-                        )}
-                        onClick={() => setRole('client')}
-                    >
-                        <Home className="h-5 w-5" />
-                        <span className="text-xs">{language === 'ar' ? 'عميل' : 'Client'}</span>
-                    </Button>
-                </div>
-                <div className="flex justify-center">
-                     <Button
-                        variant="ghost"
-                        className={cn(
-                            "flex h-auto flex-col items-center justify-center gap-1 p-0 text-muted-foreground",
-                            role === 'mechanic' && 'text-primary'
-                        )}
-                        onClick={() => setRole('mechanic')}
-                    >
-                        <User className="h-5 w-5" />
-                        <span className="text-xs">{language === 'ar' ? 'ميكانيكي' : 'Mechanic'}</span>
-                    </Button>
-                </div>
-
-                {/* View Switcher for Client */}
-                {role === 'client' && navItems.map(item => (
+                {navItems.map(item => (
                     <div key={item.id} className="flex justify-center">
                         <Button
+                            asChild
                             variant="ghost"
                             className={cn(
                                 "flex h-auto flex-col items-center justify-center gap-1 p-0 text-muted-foreground",
-                                clientView === item.view && "text-primary"
+                                // Basic active check, can be improved
+                                pathname === item.href && "text-primary"
                             )}
-                            onClick={() => setClientView(item.view as 'find' | 'requests')}
                         >
-                            <item.icon className="h-5 w-5" />
-                            <span className="text-xs">{item.label}</span>
+                            <Link href={item.href}>
+                                <item.icon className="h-5 w-5" />
+                                <span className="text-xs">{item.label}</span>
+                            </Link>
                         </Button>
                     </div>
                 ))}
+
                  <div className="flex justify-center md:hidden">
                     <UserNav />
                 </div>

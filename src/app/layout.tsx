@@ -3,6 +3,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AppProvider } from '@/components/app-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { Header } from '@/components/header';
+import { BottomNavbar } from '@/components/bottom-navbar';
 
 export const metadata: Metadata = {
   title: 'Mechasos',
@@ -31,7 +33,11 @@ export default function RootLayout({
       <body className="font-arabic antialiased">
         <FirebaseClientProvider>
           <AppProvider>
-            {children}
+            <div className="flex min-h-screen w-full flex-col">
+              <Header />
+              <main className="flex-1 pb-20 md:pb-0">{children}</main>
+              <BottomNavbar />
+            </div>
             <Toaster />
           </AppProvider>
         </FirebaseClientProvider>
