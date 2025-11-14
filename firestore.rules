@@ -1,5 +1,5 @@
 /**
- * @file Firestore Security Rules for MekaTech.
+ * @file Firestore Security Rules for Signal.
  *
  * @Core Philosophy:
  *   This ruleset enforces a user-ownership model for clients and mechanics,
@@ -102,4 +102,3 @@ service cloud.firestore {
     }
   }
 }
-

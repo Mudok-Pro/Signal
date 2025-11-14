@@ -46,10 +46,11 @@ export default function LoginPage() {
         <CardHeader className="text-center">
            <div className="flex justify-center items-center gap-3 font-bold text-lg text-primary mb-4">
               <div className="relative w-12 h-12">
-                <Image src="https://i.imgur.com/5CxFHKm.png" alt="Mechasos Logo" fill className="p-1 bg-white rounded-lg object-contain" />
+                <Image src="https://i.imgur.com/5CxFHKm.png" alt="Signal Logo" fill className="p-1 bg-white rounded-lg object-contain" />
               </div>
               <div className="flex flex-col">
-                <span className="font-headline text-2xl leading-none" lang="en">Mechasos</span>
+                <span className="font-headline text-2xl leading-none" lang="en">Signal</span>
+                 <span className="font-arabic text-2xl leading-none">سينيال</span>
               </div>
             </div>
           <CardTitle className="text-2xl">

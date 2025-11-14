@@ -7,7 +7,7 @@ import { Header } from '@/components/header';
 import { BottomNavbar } from '@/components/bottom-navbar';
 
 export const metadata: Metadata = {
-  title: 'Mechasos',
+  title: 'Signal',
   description: 'Find and request the closest mechanics.',
 };
 
