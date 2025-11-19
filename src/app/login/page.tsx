@@ -45,7 +45,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
            <div className="flex justify-center items-center gap-3 font-bold text-lg text-primary mb-4">
-              <div className="relative w-12 h-12">
+              <div className="relative w-16 h-16">
                 <Image src="/web-app-manifest-192x192.png" alt="Signal Logo" fill className="object-contain" />
               </div>
               <div className="flex flex-col">
