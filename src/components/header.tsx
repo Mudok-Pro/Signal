@@ -13,7 +13,6 @@ export function Header() {
           </div>
           <div className="flex flex-col">
             <span className="font-headline text-xl leading-none" lang="en">Signal</span>
-            <span className="font-arabic text-xl leading-none">سينيال</span>
           </div>
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">
