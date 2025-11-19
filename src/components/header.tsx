@@ -9,7 +9,7 @@ export function Header() {
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg text-primary">
           <div className="relative w-8 h-8">
-            <Image src="/favicon.ico/favicon.svg" alt="Signal Logo" fill className="object-contain" />
+            <Image src="/favicon.ico/android-chrome-192x192.png" alt="Signal Logo" fill className="object-contain" />
           </div>
           <div className="flex flex-col">
             <span className="font-headline text-xl leading-none" lang="en">Signal</span>

@@ -46,7 +46,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
            <div className="flex justify-center items-center gap-3 font-bold text-lg text-primary mb-4">
               <div className="relative w-12 h-12">
-                <Image src="/favicon.ico/favicon.svg" alt="Signal Logo" fill className="object-contain" />
+                <Image src="/favicon.ico/android-chrome-192x192.png" alt="Signal Logo" fill className="object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="font-headline text-2xl leading-none" lang="en">Signal</span>
