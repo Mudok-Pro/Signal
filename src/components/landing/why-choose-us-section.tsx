@@ -1,6 +1,8 @@
+
 'use client';
 
 import { useApp } from "../app-provider";
+import { cn } from "@/lib/utils";
 
 const reasons = [
     { title: 'سرعة الاستجابة', title_en: 'Fast Response', description: 'نصل إليك في أسرع وقت ممكن.', description_en: 'We reach you as quickly as possible.' },
