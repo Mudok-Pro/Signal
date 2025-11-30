@@ -40,4 +40,5 @@ export type UserProfile = {
   role: 'client' | 'mechanic' | 'admin';
   phoneNumber?: string;
   photoURL?: string;
+  address?: string;
 };

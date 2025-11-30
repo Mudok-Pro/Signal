@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { updateProfile } from 'firebase/auth';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function SettingsPage() {
   const { language } = useApp();
@@ -38,6 +39,7 @@ export default function SettingsPage() {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [photoURL, setPhotoURL] = useState('');
+  const [address, setAddress] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function SettingsPage() {
       setName(userProfile.name || user?.displayName || '');
       setPhoneNumber(userProfile.phoneNumber || '');
       setPhotoURL(userProfile.photoURL || user?.photoURL || '');
+      setAddress(userProfile.address || '');
     }
   }, [userProfile, user]);
 
@@ -80,6 +83,7 @@ export default function SettingsPage() {
         name,
         phoneNumber,
         photoURL,
+        address,
       };
       updateDocumentNonBlocking(userProfileRef, updatedProfileData);
 
@@ -137,6 +141,10 @@ export default function SettingsPage() {
                  <div className="space-y-2">
                     <Skeleton className="h-4 w-16" />
                     <Skeleton className="h-10 w-full" />
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-20 w-full" />
                 </div>
             </div>
           ) : (
@@ -206,6 +214,18 @@ export default function SettingsPage() {
                 type="email"
                 value={user?.email || ''}
                 disabled
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">
+                {language === 'ar' ? 'العنوان' : 'Address'}
+              </Label>
+              <Textarea
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder={language === 'ar' ? 'عنوانك...' : 'Your address...'}
+                rows={3}
               />
             </div>
              <Button onClick={handleSaveChanges} disabled={isLoading}>

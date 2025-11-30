@@ -11,7 +11,8 @@
         "name": { "type": "string" },
         "role": { "type": "string", "enum": ["client", "mechanic", "admin"] },
         "phoneNumber": { "type": "string" },
-        "photoURL": { "type": "string", "format": "uri" }
+        "photoURL": { "type": "string", "format": "uri" },
+        "address": { "type": "string", "description": "The user's physical address." }
       },
       "required": ["id", "email", "role"]
     },
