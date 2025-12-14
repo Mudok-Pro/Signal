@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useApp } from '@/components/app-provider';
@@ -12,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser, updateDocumentNonBlocking } from '@/firebase';
+import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { doc } from 'firebase/firestore';
 import { useEffect, useState, useRef } from 'react';
@@ -21,6 +20,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { updateProfile } from 'firebase/auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { uploadProfilePicture } from '@/firebase/storage';
+import { Progress } from '@/components/ui/progress';
 
 export default function SettingsPage() {
   const { language } = useApp();
@@ -40,6 +41,10 @@ export default function SettingsPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [photoURL, setPhotoURL] = useState('');
   const [address, setAddress] = useState('');
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -58,8 +63,7 @@ export default function SettingsPage() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // For simplicity, we'll use FileReader to create a data URL.
-      // In a real app, you'd upload this to Firebase Storage and get a URL.
+      setNewImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoURL(reader.result as string);
@@ -71,21 +75,40 @@ export default function SettingsPage() {
   const handleSaveChanges = async () => {
     if (!user || !auth.currentUser || !userProfileRef) return;
 
+    setIsSaving(true);
+    let uploadedPhotoURL = userProfile?.photoURL || user.photoURL;
+
     try {
-      // 1. Update Firebase Auth profile
+      // 1. Upload new image if it exists
+      if (newImageFile) {
+        setUploadProgress(0);
+        uploadedPhotoURL = await uploadProfilePicture(
+          user.uid,
+          newImageFile,
+          (progress) => {
+            setUploadProgress(progress);
+          }
+        );
+        setPhotoURL(uploadedPhotoURL);
+      }
+
+      // 2. Update Firebase Auth profile
       await updateProfile(auth.currentUser, {
         displayName: name,
-        photoURL: photoURL,
+        photoURL: uploadedPhotoURL,
       });
 
-      // 2. Update Firestore document (non-blocking)
+      // 3. Update Firestore document (using await here for consistency)
       const updatedProfileData: Partial<UserProfile> = {
         name,
         phoneNumber,
-        photoURL,
+        photoURL: uploadedPhotoURL,
         address,
       };
-      updateDocumentNonBlocking(userProfileRef, updatedProfileData);
+      // For simplicity, we use a simple setDoc here. In a real app, you might use your non-blocking wrapper.
+      await import('firebase/firestore').then(({ setDoc }) => 
+        setDoc(userProfileRef, updatedProfileData, { merge: true })
+      );
 
       toast({
         title: language === 'ar' ? 'تم حفظ التغييرات' : 'Changes Saved',
@@ -104,6 +127,10 @@ export default function SettingsPage() {
             ? 'حدث خطأ أثناء تحديث ملفك الشخصي.'
             : 'An error occurred while updating your profile.',
       });
+    } finally {
+      setIsSaving(false);
+      setUploadProgress(null);
+      setNewImageFile(null);
     }
   };
   
@@ -179,6 +206,13 @@ export default function SettingsPage() {
                 </p>
               </div>
             </div>
+            
+            {uploadProgress !== null && (
+              <div className="space-y-1">
+                  <Label>{language === 'ar' ? 'جاري رفع الصورة...' : 'Uploading Image...'}</Label>
+                  <Progress value={uploadProgress} className="w-full" />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="name">
@@ -228,8 +262,8 @@ export default function SettingsPage() {
                 rows={3}
               />
             </div>
-             <Button onClick={handleSaveChanges} disabled={isLoading}>
-                {language === 'ar' ? 'حفظ التغييرات' : 'Save Changes'}
+             <Button onClick={handleSaveChanges} disabled={isLoading || isSaving}>
+                {isSaving ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ التغييرات' : 'Save Changes')}
              </Button>
           </>
           )}
