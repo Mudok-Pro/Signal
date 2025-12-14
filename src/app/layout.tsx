@@ -25,8 +25,8 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/favicon.ico/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="Signal" />
-        <link rel="manifest" href="/favicon.ico/site.webmanifest" />
-        <meta name="theme-color" content="#ffffff" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0077C2" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
